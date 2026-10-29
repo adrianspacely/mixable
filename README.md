@@ -1,12 +1,6 @@
-⚠️ **This is still in development.** ⚠️
-
-- [ ] Finish that meme.
-
 # Mixable
 
 Nicer mixins for `Macroable` classes in Laravel.
-
-![Macroable Mixins vs. Mixable Mixins](art/meme.jpeg)
 
 ## Installation
 
