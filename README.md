@@ -249,6 +249,29 @@ class LoggerMixin
 }
 ```
 
+## Mixing Into Any Object
+
+Macros need the `Macroable` trait, but plenty of classes don't have it, like `Illuminate\Bus\PendingBatch`. You can still mix into them. Register the Mixin (or Mixable) the same way, and call its methods through `mixed()`:
+
+```php
+LoggerMixin::mix(PendingBatch::class);
+
+mixed(Bus::batch($jobs))
+    ->name('Imports')
+    ->info()          // LoggerMixin::info()
+    ->onQueue('imports')
+    ->dispatch();
+```
+
+`mixed($object)` returns an `AdrianBrown\Mixable\Mixture`, which is the same as `new Mixture($object)`:
+
+- Mixin and Mixable methods are called like macros, so they work the same way on the object.
+- Other method calls, and property gets and sets, are passed to the object.
+- When a call returns the object, you get the mixture back, so the chain keeps its mixins.
+- Use `->mixedTarget()` to get the object itself, like when you need to pass it to a type-hinted parameter.
+
+You can mix into a parent class or an interface, and every object that extends or implements it can use those methods through `mixed()`. `mixed()` works on Macroable objects too.
+
 ## Passing Arguments by Reference
 
 PHP passes arguments to `__call()` and `__callStatic()` by value, and every macro is called through them. A parameter like `int &$value` gets a copy, so the variable you passed in is not changed. This is true for every Laravel macro, not only mixins.
@@ -302,6 +325,16 @@ $player->addPoints('five'); // Error: Parameter #1 $points of method Player::add
 ```
 
 Macros are registered when your app boots, so this needs [Larastan](https://github.com/larastan/larastan), which boots your app before analysing it. Larastan also describes macros, but without their types, and PHPStan uses whichever extension is included first. phpstan/extension-installer includes packages in alphabetical order, so this one comes first. If you include the extensions yourself, include this one before Larastan's.
+
+**`mixed()` objects have the methods of the object and its mixins:**
+
+```php
+mixed($wallet);                         // Mixture<Wallet>
+mixed($wallet)->withdraw(10);           // Mixture<Wallet>, from WalletMixin::withdraw(): static
+mixed($wallet)->deposit(10);            // Mixture<Wallet>, from Wallet::deposit(): static
+mixed($wallet)->getBalance();           // int
+mixed($wallet)->mixedTarget();          // Wallet
+```
 
 **Arguments for by-reference parameters must use `ref()`:**
 

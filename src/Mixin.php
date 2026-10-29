@@ -58,7 +58,24 @@ trait Mixin
             return Closure::bind($callback, null, $this->macroableClass)();
         }
 
-        return Mixer::invade($this->macroableInstance, $callback);
+        return Mixer::invade($this->macroableInstance, $callback, $this->macroableScope());
+    }
+
+    /**
+     * Calls are scoped to the class the mixin was mixed into, so private members it declares are reachable on a subclass.
+     *
+     * @return class-string|null
+     */
+    protected function macroableScope(): ?string
+    {
+        $isClass = $this->macroableClass !== null && class_exists($this->macroableClass);
+
+        return $isClass && $this->macroableInstance instanceof $this->macroableClass ? $this->macroableClass : null;
+    }
+
+    protected function forwardedCallScope($object)
+    {
+        return $object === $this->macroableInstance ? $this->macroableScope() : null;
     }
 
     public function __get($attribute)

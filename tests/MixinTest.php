@@ -5,6 +5,8 @@ namespace AdrianBrown\Mixable\Tests;
 use AdrianBrown\Mixable\Mixer;
 use AdrianBrown\Mixable\Mixin;
 use AdrianBrown\Mixable\Tests\Support\CollectionMixin;
+use AdrianBrown\Mixable\Tests\Support\Counter;
+use AdrianBrown\Mixable\Tests\Support\SpecialCounter;
 use AdrianBrown\Mixable\Tests\Support\TestMe;
 use AdrianBrown\Mixable\Tests\Support\TransposeCollectionMethod;
 use Error;
@@ -748,6 +750,21 @@ test('the mixin can get private attributes on the macroable', function () {
         expect($result)->not->toBe('protected_value');
         expect($result)->toBe('private_value');
     });
+});
+
+test('the mixin can get private attributes declared on the macroable when called on a subclass', function () {
+    (new class () {
+        use Mixin;
+
+        public string $macroable = Counter::class;
+
+        public function mixinGetPrivateCount()
+        {
+            return $this->privateCount;
+        }
+    })->mix();
+
+    expect((new SpecialCounter(5))->mixinGetPrivateCount())->toBe(5);
 });
 
 test('the mixin can set public attributes on the macroable', function () {

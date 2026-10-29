@@ -1,5 +1,7 @@
 services:
     -
+        class: AdrianBrown\Mixable\PHPStan\Macros
+    -
         class: AdrianBrown\Mixable\PHPStan\MixedMethodsExtension
         tags:
             - phpstan.broker.methodsClassReflectionExtension

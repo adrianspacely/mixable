@@ -2,6 +2,7 @@
 
 namespace AdrianBrown\Mixable\PHPStan;
 
+use Closure;
 use PHPStan\Reflection\ClassMemberReflection;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ExtendedMethodReflection;
@@ -10,34 +11,35 @@ use PHPStan\Reflection\MethodReflection;
 use PHPStan\Reflection\ParameterReflection;
 use PHPStan\Reflection\ParametersAcceptor;
 use PHPStan\TrinaryLogic;
-use PHPStan\Type\StaticType;
 use PHPStan\Type\Type;
-use PHPStan\Type\TypeTraverser;
 
 /**
- * A mixin method, described as a method of the macroable it was mixed into.
+ * A method called through `__call()`, like a macro's mixin method, described as a method of the class it is called on.
  *
- * The macro returns the macroable when the mixin method returns itself, so `$this`, `static`,
- * and `self` return types become the macroable. By-reference parameters take arguments wrapped with `ref()`.
+ * Its return type is mapped, so a method which returns itself can return what the call returns instead.
+ * By-reference parameters take arguments wrapped with `ref()`, because `__call()` gets arguments by value.
  */
 class MixedMethodReflection implements MethodReflection
 {
+    /**
+     * @param Closure(Type): Type $mapReturnType
+     */
     public function __construct(
-        private ClassReflection $calledOn,
-        private ClassReflection $macroable,
+        private ClassReflection $declaringClass,
         private ExtendedMethodReflection $mixinMethod,
+        private Closure $mapReturnType,
+        private bool $isStatic,
     ) {
     }
 
     public function getDeclaringClass(): ClassReflection
     {
-        return $this->macroable;
+        return $this->declaringClass;
     }
 
     public function isStatic(): bool
     {
-        // Macros can be called statically too.
-        return true;
+        return $this->isStatic;
     }
 
     public function isPrivate(): bool
@@ -75,7 +77,7 @@ class MixedMethodReflection implements MethodReflection
             $variant->getResolvedTemplateTypeMap(),
             array_map(fn (ParameterReflection $parameter) => $this->toMacroParameter($parameter), $variant->getParameters()),
             $variant->isVariadic(),
-            $this->toMacroable($variant->getReturnType()),
+            ($this->mapReturnType)($variant->getReturnType()),
         ), $this->mixinMethod->getVariants());
     }
 
@@ -119,18 +121,5 @@ class MixedMethodReflection implements MethodReflection
         }
 
         return new RefParameterReflection($parameter);
-    }
-
-    private function toMacroable(Type $type): Type
-    {
-        $mixin = $this->mixinMethod->getDeclaringClass()->getName();
-
-        return TypeTraverser::map($type, function (Type $type, callable $traverse) use ($mixin): Type {
-            if ($type->getObjectClassNames() === [$mixin]) {
-                return new StaticType($this->calledOn);
-            }
-
-            return $traverse($type);
-        });
     }
 }

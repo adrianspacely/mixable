@@ -22,4 +22,21 @@ final class Ref
     {
         $this->value = &$value;
     }
+
+    /**
+     * Swap each `Ref` in the arguments for a reference to the variable it holds.
+     *
+     * @param array<array-key, mixed> $args
+     * @return array<array-key, mixed>
+     */
+    public static function unwrap(array $args): array
+    {
+        foreach ($args as $key => $arg) {
+            if ($arg instanceof self) {
+                $args[$key] = &$arg->value;
+            }
+        }
+
+        return $args;
+    }
 }

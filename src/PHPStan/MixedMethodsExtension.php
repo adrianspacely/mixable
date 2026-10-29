@@ -5,32 +5,26 @@ namespace AdrianBrown\Mixable\PHPStan;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\MethodReflection;
 use PHPStan\Reflection\MethodsClassReflectionExtension;
-use PHPStan\Reflection\ReflectionProvider;
 
 /**
- * Describes the macros `mix()` registered with the types of the mixin methods they call.
+ * Describes the macros `mix()` registered, and the methods of a `mixed()` object, with the types of the methods they call.
  *
- * Macros are registered when the app boots, so this needs PHPStan to boot the app first, like Larastan does.
+ * Mixins are registered when the app boots, so this needs PHPStan to boot the app first, like Larastan does.
  */
 class MixedMethodsExtension implements MethodsClassReflectionExtension
 {
-    public function __construct(private ReflectionProvider $reflectionProvider)
+    public function __construct(private Macros $macros)
     {
     }
 
     public function hasMethod(ClassReflection $classReflection, string $methodName): bool
     {
-        return Macros::find($classReflection, $methodName) !== null;
+        return $this->macros->describe($classReflection, $methodName) !== null;
     }
 
     public function getMethod(ClassReflection $classReflection, string $methodName): MethodReflection
     {
-        [$macroable, $mixin] = Macros::find($classReflection, $methodName);
-
-        return new MixedMethodReflection(
-            $classReflection,
-            $this->reflectionProvider->getClass($macroable),
-            $this->reflectionProvider->getClass($mixin)->getNativeMethod($methodName),
-        );
+        return $this->macros->describe($classReflection, $methodName)
+            ?? throw new \LogicException("No mixed method [{$methodName}] on [{$classReflection->getName()}].");
     }
 }

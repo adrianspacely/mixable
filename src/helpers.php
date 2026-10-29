@@ -1,5 +1,6 @@
 <?php
 
+use AdrianBrown\Mixable\Mixture;
 use AdrianBrown\Mixable\Ref;
 
 if (! function_exists('ref')) {
@@ -14,5 +15,20 @@ if (! function_exists('ref')) {
     function ref(&$value): Ref
     {
         return new Ref($value);
+    }
+}
+
+if (! function_exists('mixed')) {
+    /**
+     * Mix mixins into an object, including one whose class isn't macroable.
+     *
+     * @template T of object
+     *
+     * @param T $target
+     * @return Mixture<T>
+     */
+    function mixed(object $target): Mixture
+    {
+        return new Mixture($target);
     }
 }

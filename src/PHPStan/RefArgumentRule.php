@@ -14,6 +14,7 @@ use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 use PHPStan\Type\ObjectType;
+use PHPStan\Type\VerbosityLevel;
 
 /**
  * Reports macro calls which pass a by-reference parameter's argument without `ref()`,
@@ -23,7 +24,7 @@ use PHPStan\Type\ObjectType;
  */
 class RefArgumentRule implements Rule
 {
-    public function __construct(private ReflectionProvider $reflectionProvider)
+    public function __construct(private ReflectionProvider $reflectionProvider, private Macros $macros)
     {
     }
 
@@ -42,13 +43,13 @@ class RefArgumentRule implements Rule
         $errors = [];
 
         foreach ($this->calledOn($node, $scope) as $classReflection) {
-            [, $mixin] = Macros::find($classReflection, $methodName) ?? [null, null];
+            $calledMethod = $this->macros->calledMethod($classReflection, $methodName);
 
-            if ($mixin === null) {
+            if ($calledMethod === null) {
                 continue;
             }
 
-            $parameters = $this->reflectionProvider->getClass($mixin)->getNativeMethod($methodName)->getOnlyVariant()->getParameters();
+            $parameters = $calledMethod->getOnlyVariant()->getParameters();
 
             foreach ($node->getArgs() as $position => $arg) {
                 if ($arg->unpack) {
@@ -70,7 +71,9 @@ class RefArgumentRule implements Rule
                     'Parameter #%d $%s of method %s::%s() is passed by reference, but macros receive arguments by value. Wrap the argument with ref().',
                     $index + 1,
                     $parameter->getName(),
-                    $classReflection->getDisplayName(),
+                    $node instanceof MethodCall
+                        ? $scope->getType($node->var)->describe(VerbosityLevel::typeOnly())
+                        : $classReflection->getDisplayName(),
                     $methodName,
                 ))
                     ->identifier('mixable.refArgument')

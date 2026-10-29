@@ -7,3 +7,5 @@ use AdrianBrown\Mixable\Tests\Support\TypedCounterMixin;
 
 TypedCounterMixin::mix();
 TypedCounterMixable::mix();
+\AdrianBrown\Mixable\Tests\Support\WalletMixin::mix();
+\AdrianBrown\Mixable\Tests\Support\WalletMixable::mix();

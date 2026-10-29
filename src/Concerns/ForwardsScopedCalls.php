@@ -21,7 +21,7 @@ trait ForwardsScopedCalls
     protected function forwardCallTo($object, $method, $parameters)
     {
         try {
-            return Mixer::invade($object, fn () => $this->{$method}(...$parameters));
+            return Mixer::invade($object, fn () => $this->{$method}(...$parameters), $this->forwardedCallScope($object));
         } catch (Error|BadMethodCallException $e) {
             $pattern = '~^Call to undefined method (?P<class>[^:]+)::(?P<method>[^\(]+)\(\)$~';
 
@@ -36,6 +36,17 @@ trait ForwardsScopedCalls
 
             static::throwBadMethodCallException($method);
         }
+    }
+
+    /**
+     * The class scope to forward calls to the given object in, which defaults to the object's class.
+     *
+     * @param  mixed  $object
+     * @return class-string|null
+     */
+    protected function forwardedCallScope($object)
+    {
+        return null;
     }
 
     /**
