@@ -7,7 +7,7 @@ Nicer mixins for `Macroable` classes in Laravel.
 You can install this package via composer:
 
 ```bash
-composer require adrianb93/mixable
+composer require adrianspacely/mixable
 ```
 
 It needs PHP 8.2 or later, and Laravel 11, 12, or 13.
@@ -19,7 +19,7 @@ Write a mixin as a plain class with public methods. Inside it, `$this` acts like
 ```php
 namespace App\Mixins;
 
-use AdrianBrown\Mixable\Mixin;
+use AdrianSpacely\Mixable\Mixin;
 
 class CollectionMixin
 {
@@ -80,14 +80,14 @@ You register the mixins in your `AppServiceProvider` like this:
 
 ### Mixins
 
-`AdrianBrown\Mixable\Mixin` is used on a plain PHP class. It macros public methods into Macroable classes you specify.
+`AdrianSpacely\Mixable\Mixin` is used on a plain PHP class. It macros public methods into Macroable classes you specify.
 
 **Example Mixin:**
 
 ```php
 namespace App\Mixins;
 
-use AdrianBrown\Mixable\Mixin;
+use AdrianSpacely\Mixable\Mixin;
 
 class LoggerMixin
 {
@@ -146,14 +146,14 @@ The package will throw an exception if the Mixin is a subclass of the Macroable.
 
 ### Mixables
 
-`AdrianBrown\Mixable\Mixable` is for a subclass of a `Macroable`. It macros public methods into the parent class.
+`AdrianSpacely\Mixable\Mixable` is for a subclass of a `Macroable`. It macros public methods into the parent class.
 
 **Example Mixable:**
 
 ```php
 namespace App\Models\Collections;
 
-use AdrianBrown\Mixable\Mixable;
+use AdrianSpacely\Mixable\Mixable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 class Collection extends EloquentCollection
@@ -291,7 +291,7 @@ class LoggerMixin
 Macros need the `Macroable` trait, but plenty of classes don't have it, like `Illuminate\Bus\PendingBatch`. You can still mix into them. Register the Mixin (or Mixable) the same way, and call its methods through `mixed()`:
 
 ```php
-use function AdrianBrown\Mixable\mixed;
+use function AdrianSpacely\Mixable\mixed;
 
 LoggerMixin::mix(PendingBatch::class);
 
@@ -302,7 +302,7 @@ mixed(Bus::batch($jobs))
     ->dispatch();
 ```
 
-`mixed($object)` returns an `AdrianBrown\Mixable\Mixture`, which is the same as `new Mixture($object)`:
+`mixed($object)` returns an `AdrianSpacely\Mixable\Mixture`, which is the same as `new Mixture($object)`:
 
 - Mixin and Mixable methods are called like macros, so they work the same way on the object.
 - Other method calls, and property gets and sets, are passed to the object.
@@ -328,7 +328,7 @@ class PointsMixin
     }
 }
 
-use function AdrianBrown\Mixable\ref;
+use function AdrianSpacely\Mixable\ref;
 
 $value = 10;
 
@@ -336,7 +336,7 @@ $player->addPoints($value);      // $value is still 10
 $player->addPoints(ref($value)); // $value is now 15
 ```
 
-`ref($value)` is the same as `new \AdrianBrown\Mixable\Ref($value)`. It holds a reference to the variable, and the macro unwraps it before calling your method. An argument wrapped with `ref()` is unwrapped for any parameter, so a parameter passed by value gets the value.
+`ref($value)` is the same as `new \AdrianSpacely\Mixable\Ref($value)`. It holds a reference to the variable, and the macro unwraps it before calling your method. An argument wrapped with `ref()` is unwrapped for any parameter, so a parameter passed by value gets the value.
 
 You only need `ref()` when calling the macro. When you call a Mixable method on an instance of the subclass, it is a real method, so pass the variable as usual.
 
@@ -346,7 +346,7 @@ The package includes a [PHPStan](https://phpstan.org) extension. If you use [php
 
 ```neon
 includes:
-    - vendor/adrianb93/mixable/extension.neon
+    - vendor/adrianspacely/mixable/extension.neon
 ```
 
 **Macros have the mixin method's types:**
@@ -496,7 +496,7 @@ Please review [our security policy](../../security/policy) on how to report secu
 
 ## Credits
 
-- [Adrian Brown](https://github.com/adrianb93)
+- [Adrian Brown](https://github.com/adrianspacely)
 - [All Contributors](../../contributors)
 
 I like to use dedicated query builders and collections for my models. I have a base collection and query builder with some awesome methods. I use the `Mixable` trait on them and created this package because of them. You can learn more about dedicated collections and query builders for eloquent models on [Tim MacDonald's](https://twitter.com/timacdonald87) blog:

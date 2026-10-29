@@ -1,9 +1,9 @@
 <?php
 
-namespace AdrianBrown\Mixable\PHPStan;
+namespace AdrianSpacely\Mixable\PHPStan;
 
-use AdrianBrown\Mixable\Mixer;
-use AdrianBrown\Mixable\Mixture;
+use AdrianSpacely\Mixable\Mixer;
+use AdrianSpacely\Mixable\Mixture;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ExtendedMethodReflection;
 use PHPStan\Reflection\ReflectionProvider;

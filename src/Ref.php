@@ -1,6 +1,6 @@
 <?php
 
-namespace AdrianBrown\Mixable;
+namespace AdrianSpacely\Mixable;
 
 /**
  * Holds a reference to a variable, so a macro can pass it to a by-reference parameter.

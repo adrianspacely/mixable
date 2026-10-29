@@ -1,8 +1,8 @@
 <?php
 
-namespace AdrianBrown\Mixable\Concerns;
+namespace AdrianSpacely\Mixable\Concerns;
 
-use AdrianBrown\Mixable\Mixer;
+use AdrianSpacely\Mixable\Mixer;
 use BadMethodCallException;
 use Error;
 

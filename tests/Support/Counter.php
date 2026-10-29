@@ -1,6 +1,6 @@
 <?php
 
-namespace AdrianBrown\Mixable\Tests\Support;
+namespace AdrianSpacely\Mixable\Tests\Support;
 
 use Illuminate\Support\Traits\Macroable;
 

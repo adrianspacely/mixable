@@ -1,10 +1,10 @@
 <?php
 
-namespace AdrianBrown\Mixable\Tests;
+namespace AdrianSpacely\Mixable\Tests;
 
-use AdrianBrown\Mixable\Mixable;
-use AdrianBrown\Mixable\Tests\Support\Counter;
-use AdrianBrown\Mixable\Tests\Support\CounterMixable;
+use AdrianSpacely\Mixable\Mixable;
+use AdrianSpacely\Mixable\Tests\Support\Counter;
+use AdrianSpacely\Mixable\Tests\Support\CounterMixable;
 
 test('problem: mixable is created without the constructor', function () {
     // If this is a problem, the the solution is do your own "in" and "out" method.

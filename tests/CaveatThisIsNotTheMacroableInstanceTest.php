@@ -1,11 +1,11 @@
 <?php
 
-namespace AdrianBrown\Mixable\Tests;
+namespace AdrianSpacely\Mixable\Tests;
 
-use AdrianBrown\Mixable\Mixable;
-use AdrianBrown\Mixable\Mixin;
-use AdrianBrown\Mixable\Tests\Support\Counter;
-use AdrianBrown\Mixable\Tests\Support\TestMe;
+use AdrianSpacely\Mixable\Mixable;
+use AdrianSpacely\Mixable\Mixin;
+use AdrianSpacely\Mixable\Tests\Support\Counter;
+use AdrianSpacely\Mixable\Tests\Support\TestMe;
 use TypeError;
 
 test('problem: $this is an instance of the mixin meaning you are not passing the macroable elsewhere', function () {

@@ -1,13 +1,13 @@
 <?php
 
-namespace AdrianBrown\Mixable\Tests;
+namespace AdrianSpacely\Mixable\Tests;
 
-use AdrianBrown\Mixable\Mixable;
-use AdrianBrown\Mixable\Mixin;
-use AdrianBrown\Mixable\Tests\Support\Counter;
+use AdrianSpacely\Mixable\Mixable;
+use AdrianSpacely\Mixable\Mixin;
+use AdrianSpacely\Mixable\Tests\Support\Counter;
 use ArrayObject;
 
-use function AdrianBrown\Mixable\ref;
+use function AdrianSpacely\Mixable\ref;
 
 test('problem: a mixin macro receives arguments by value, because PHP passes `__call()` arguments by value', function () {
     (new class () {

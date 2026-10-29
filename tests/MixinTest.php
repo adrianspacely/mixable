@@ -1,14 +1,14 @@
 <?php
 
-namespace AdrianBrown\Mixable\Tests;
+namespace AdrianSpacely\Mixable\Tests;
 
-use AdrianBrown\Mixable\Mixer;
-use AdrianBrown\Mixable\Mixin;
-use AdrianBrown\Mixable\Tests\Support\CollectionMixin;
-use AdrianBrown\Mixable\Tests\Support\Counter;
-use AdrianBrown\Mixable\Tests\Support\SpecialCounter;
-use AdrianBrown\Mixable\Tests\Support\TestMe;
-use AdrianBrown\Mixable\Tests\Support\TransposeCollectionMethod;
+use AdrianSpacely\Mixable\Mixer;
+use AdrianSpacely\Mixable\Mixin;
+use AdrianSpacely\Mixable\Tests\Support\CollectionMixin;
+use AdrianSpacely\Mixable\Tests\Support\Counter;
+use AdrianSpacely\Mixable\Tests\Support\SpecialCounter;
+use AdrianSpacely\Mixable\Tests\Support\TestMe;
+use AdrianSpacely\Mixable\Tests\Support\TransposeCollectionMethod;
 use BadMethodCallException;
 use Error;
 use Illuminate\Http\Request;
@@ -455,7 +455,7 @@ it('returns the mixin instance when forwarding calls if the macroable returned $
 
         public function example()
         {
-            /** @see \AdrianBrown\Mixable\Tests\Support\TestMe@publicCallReturningThis for the assertions that the return value is TestMe */
+            /** @see \AdrianSpacely\Mixable\Tests\Support\TestMe@publicCallReturningThis for the assertions that the return value is TestMe */
             $value = $this->publicCallReturningThis();
 
             // Because the Mixin trait forwards calls to the macroable, the return value is switched to the mixin instance if the value is the macroable instance.
@@ -486,7 +486,7 @@ it('will return the macroable object if it is not the same instance as the macro
 
         public function example()
         {
-            /** @see \AdrianBrown\Mixable\Tests\Support\TestMe@publicCallReturningNewInstance for the assertions that the return value is a different TestMe instance */
+            /** @see \AdrianSpacely\Mixable\Tests\Support\TestMe@publicCallReturningNewInstance for the assertions that the return value is a different TestMe instance */
             $value = $this->publicCallReturningNewInstance();
 
             // The Mixin trait will not switch the TestMe instance with the Mixin because the TestMe instance is not the instance that the mixin was invoked from.

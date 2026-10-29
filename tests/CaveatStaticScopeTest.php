@@ -1,9 +1,9 @@
 <?php
 
-namespace AdrianBrown\Mixable\Tests;
+namespace AdrianSpacely\Mixable\Tests;
 
-use AdrianBrown\Mixable\Mixin;
-use AdrianBrown\Mixable\Tests\Support\TestMe;
+use AdrianSpacely\Mixable\Mixin;
+use AdrianSpacely\Mixable\Tests\Support\TestMe;
 
 test('problem: static::class gives the mixin class name', function () {
     $mixin = new class () {

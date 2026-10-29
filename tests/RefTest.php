@@ -1,13 +1,13 @@
 <?php
 
-namespace AdrianBrown\Mixable\Tests;
+namespace AdrianSpacely\Mixable\Tests;
 
-use AdrianBrown\Mixable\Mixable;
-use AdrianBrown\Mixable\Mixin;
-use AdrianBrown\Mixable\Ref;
-use AdrianBrown\Mixable\Tests\Support\Counter;
+use AdrianSpacely\Mixable\Mixable;
+use AdrianSpacely\Mixable\Mixin;
+use AdrianSpacely\Mixable\Ref;
+use AdrianSpacely\Mixable\Tests\Support\Counter;
 
-use function AdrianBrown\Mixable\ref;
+use function AdrianSpacely\Mixable\ref;
 
 beforeEach(function () {
     (new class () {

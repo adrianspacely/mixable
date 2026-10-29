@@ -1,8 +1,8 @@
 <?php
 
-namespace AdrianBrown\Mixable\PHPStan;
+namespace AdrianSpacely\Mixable\PHPStan;
 
-use AdrianBrown\Mixable\Ref;
+use AdrianSpacely\Mixable\Ref;
 use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;

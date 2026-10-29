@@ -1,10 +1,10 @@
 services:
     -
-        class: AdrianBrown\Mixable\PHPStan\Macros
+        class: AdrianSpacely\Mixable\PHPStan\Macros
     -
-        class: AdrianBrown\Mixable\PHPStan\MixedMethodsExtension
+        class: AdrianSpacely\Mixable\PHPStan\MixedMethodsExtension
         tags:
             - phpstan.broker.methodsClassReflectionExtension
 
 rules:
-    - AdrianBrown\Mixable\PHPStan\RefArgumentRule
+    - AdrianSpacely\Mixable\PHPStan\RefArgumentRule

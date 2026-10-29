@@ -1,6 +1,6 @@
 <?php
 
-namespace AdrianBrown\Mixable;
+namespace AdrianSpacely\Mixable;
 
 use BadMethodCallException;
 

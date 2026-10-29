@@ -1,11 +1,11 @@
 <?php
 
-namespace AdrianBrown\Mixable\Tests;
+namespace AdrianSpacely\Mixable\Tests;
 
-use AdrianBrown\Mixable\Mixer;
-use AdrianBrown\Mixable\Tests\Support\Counter;
-use AdrianBrown\Mixable\Tests\Support\TestMe;
-use AdrianBrown\Mixable\Tests\Support\Ticket;
+use AdrianSpacely\Mixable\Mixer;
+use AdrianSpacely\Mixable\Tests\Support\Counter;
+use AdrianSpacely\Mixable\Tests\Support\TestMe;
+use AdrianSpacely\Mixable\Tests\Support\Ticket;
 use Closure;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;

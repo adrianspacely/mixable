@@ -1,8 +1,8 @@
 <?php
 
-namespace AdrianBrown\Mixable\Tests\Support;
+namespace AdrianSpacely\Mixable\Tests\Support;
 
-use AdrianBrown\Mixable\Mixin;
+use AdrianSpacely\Mixable\Mixin;
 
 class TypedCounterMixin
 {

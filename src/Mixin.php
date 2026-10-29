@@ -1,8 +1,8 @@
 <?php
 
-namespace AdrianBrown\Mixable;
+namespace AdrianSpacely\Mixable;
 
-use AdrianBrown\Mixable\Concerns\ForwardsScopedCalls;
+use AdrianSpacely\Mixable\Concerns\ForwardsScopedCalls;
 use Closure;
 use InvalidArgumentException;
 use LogicException;

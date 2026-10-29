@@ -16,7 +16,7 @@
     beStrictAboutOutputDuringTests="true"
 >
     <testsuites>
-        <testsuite name="AdrianBrown Test Suite">
+        <testsuite name="Mixable Test Suite">
             <directory>tests</directory>
         </testsuite>
     </testsuites>

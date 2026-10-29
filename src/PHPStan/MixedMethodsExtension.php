@@ -1,6 +1,6 @@
 <?php
 
-namespace AdrianBrown\Mixable\PHPStan;
+namespace AdrianSpacely\Mixable\PHPStan;
 
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\MethodReflection;

@@ -1,8 +1,8 @@
 <?php
 
-namespace AdrianBrown\Mixable\Tests;
+namespace AdrianSpacely\Mixable\Tests;
 
-use AdrianBrown\Mixable\Mixin;
+use AdrianSpacely\Mixable\Mixin;
 use Illuminate\Support\Collection;
 
 test('problem: passing attributes by reference will cause PHP to warn about indirect attribute changes via magic methods', function () {

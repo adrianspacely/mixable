@@ -1,13 +1,13 @@
 <?php
 
-namespace AdrianBrown\Mixable\Tests;
+namespace AdrianSpacely\Mixable\Tests;
 
-use AdrianBrown\Mixable\Mixable;
-use AdrianBrown\Mixable\Mixer;
-use AdrianBrown\Mixable\Tests\Support\CollectionMixable;
-use AdrianBrown\Mixable\Tests\Support\Counter;
-use AdrianBrown\Mixable\Tests\Support\CounterMixable;
-use AdrianBrown\Mixable\Tests\Support\Ticket;
+use AdrianSpacely\Mixable\Mixable;
+use AdrianSpacely\Mixable\Mixer;
+use AdrianSpacely\Mixable\Tests\Support\CollectionMixable;
+use AdrianSpacely\Mixable\Tests\Support\Counter;
+use AdrianSpacely\Mixable\Tests\Support\CounterMixable;
+use AdrianSpacely\Mixable\Tests\Support\Ticket;
 use Illuminate\Support\Collection;
 use ReflectionClass;
 

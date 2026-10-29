@@ -1,21 +1,21 @@
 <?php
 
-namespace AdrianBrown\Mixable\Tests;
+namespace AdrianSpacely\Mixable\Tests;
 
-use AdrianBrown\Mixable\Mixer;
-use AdrianBrown\Mixable\Mixin;
-use AdrianBrown\Mixable\Mixture;
-use AdrianBrown\Mixable\Tests\Support\CollectionMixin;
-use AdrianBrown\Mixable\Tests\Support\HasBalance;
-use AdrianBrown\Mixable\Tests\Support\SavingsWallet;
-use AdrianBrown\Mixable\Tests\Support\Wallet;
-use AdrianBrown\Mixable\Tests\Support\WalletMixable;
-use AdrianBrown\Mixable\Tests\Support\WalletMixin;
+use AdrianSpacely\Mixable\Mixer;
+use AdrianSpacely\Mixable\Mixin;
+use AdrianSpacely\Mixable\Mixture;
+use AdrianSpacely\Mixable\Tests\Support\CollectionMixin;
+use AdrianSpacely\Mixable\Tests\Support\HasBalance;
+use AdrianSpacely\Mixable\Tests\Support\SavingsWallet;
+use AdrianSpacely\Mixable\Tests\Support\Wallet;
+use AdrianSpacely\Mixable\Tests\Support\WalletMixable;
+use AdrianSpacely\Mixable\Tests\Support\WalletMixin;
 use BadMethodCallException;
 use Illuminate\Support\Collection;
 
-use function AdrianBrown\Mixable\mixed;
-use function AdrianBrown\Mixable\ref;
+use function AdrianSpacely\Mixable\mixed;
+use function AdrianSpacely\Mixable\ref;
 
 it('records mixins for a class that is not macroable', function () {
     WalletMixin::mix();

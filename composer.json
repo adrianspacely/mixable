@@ -1,12 +1,12 @@
 {
-    "name": "adrianb93/mixable",
+    "name": "adrianspacely/mixable",
     "description": "Cleaner mixins for Laravel Macroable classes.",
     "keywords": [
-        "adrianb93",
+        "adrianspacely",
         "laravel",
         "mixable"
     ],
-    "homepage": "https://github.com/adrianb93/mixable",
+    "homepage": "https://github.com/adrianspacely/mixable",
     "license": "MIT",
     "authors": [
         {
@@ -37,8 +37,8 @@
     },
     "autoload": {
         "psr-4": {
-            "AdrianBrown\\Mixable\\": "src",
-            "AdrianBrown\\Mixable\\Database\\Factories\\": "database/factories"
+            "AdrianSpacely\\Mixable\\": "src",
+            "AdrianSpacely\\Mixable\\Database\\Factories\\": "database/factories"
         },
         "files": [
             "src/helpers.php"
@@ -46,7 +46,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "AdrianBrown\\Mixable\\Tests\\": "tests"
+            "AdrianSpacely\\Mixable\\Tests\\": "tests"
         }
     },
     "scripts": {

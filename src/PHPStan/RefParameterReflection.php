@@ -1,8 +1,8 @@
 <?php
 
-namespace AdrianBrown\Mixable\PHPStan;
+namespace AdrianSpacely\Mixable\PHPStan;
 
-use AdrianBrown\Mixable\Ref;
+use AdrianSpacely\Mixable\Ref;
 use PHPStan\Reflection\ParameterReflection;
 use PHPStan\Reflection\PassedByReference;
 use PHPStan\Type\Generic\GenericObjectType;

@@ -1,8 +1,8 @@
 <?php
 
-namespace AdrianBrown\Mixable\Tests\Support;
+namespace AdrianSpacely\Mixable\Tests\Support;
 
-use AdrianBrown\Mixable\Mixable;
+use AdrianSpacely\Mixable\Mixable;
 
 class WalletMixable extends Wallet
 {
