@@ -1,0 +1,2 @@
+rules:
+    - AdrianBrown\Mixable\PHPStan\ParameterByReferenceRule

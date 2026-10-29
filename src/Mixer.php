@@ -28,7 +28,7 @@ class Mixer
                 /** @var object|null $macroableInstance */
                 $macroableInstance = isset($this) ? $this : null; // @phpstan-ignore-line
                 $mixin = $createMixinInstance($macroableInstance, static::class);
-                $result = call_user_func([$mixin, $method], ...$args);
+                $result = $mixin->{$method}(...$args);
                 $traits = class_uses_recursive($mixin);
                 $isMixinOrMixable = in_array(Mixin::class, $traits) || in_array(Mixable::class, $traits);
 

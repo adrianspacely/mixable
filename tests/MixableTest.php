@@ -238,7 +238,3 @@ test('only copies the state of classes the macroable instance shares with the mi
     expect($counter->counts())->toBe([6, 6, 6, 1]);
     expect(property_exists($counter, 'booted'))->toBe(false);
 });
-
-test('bug: a mixable macro must support method parameters by reference', function () {
-    $this->markTestIncomplete('do better');
-});

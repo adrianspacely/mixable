@@ -1032,7 +1032,3 @@ test('a macro called statically cannot get or set attributes on the macroable', 
     expect(fn () => TestMe::getAttribute())->toThrow(LogicException::class, 'Cannot get [publicAttribute] on [' . TestMe::class . '] because the macro was called statically.');
     expect(fn () => TestMe::setAttribute())->toThrow(LogicException::class, 'Cannot set [publicAttribute] on [' . TestMe::class . '] because the macro was called statically.');
 });
-
-test('bug: a mixin macro must support method parameters by reference', function () {
-    $this->markTestIncomplete('do better');
-});

@@ -1,7 +1,5 @@
 ⚠️ **This is still in development.** ⚠️
 
-- [ ] Finish Mixable tests.
-- [ ] Macros need to support arguments by reference.
 - [ ] Blog post.
 - [ ] Finish that meme.
 
@@ -251,6 +249,23 @@ class LoggerMixin
 }
 ```
 
+## Static Analysis
+
+The package includes a [PHPStan](https://phpstan.org) extension. If you use [phpstan/extension-installer](https://github.com/phpstan/extension-installer) it's enabled automatically, otherwise include it in your `phpstan.neon`:
+
+```neon
+includes:
+    - vendor/adrianb93/mixable/extension.neon
+```
+
+It reports Mixin and Mixable methods with by-reference parameters, because macros receive arguments by value:
+
+```
+Parameter #1 $value of Mixin method App\Mixins\PointsMixin::addPoints() is passed by reference, but macros receive arguments by value.
+```
+
+The error identifier is `mixable.parameterByReference`. For a Mixable you only call on subclass instances, you can ignore it.
+
 ## Troubleshooting
 
 ### [Mixable] My Mixin isn’t returning an instance of the parent (Macroable), it is returning an instance of the child/subclass (Mixable).
@@ -274,6 +289,28 @@ There are a couple of ways around this issue:
     $this->items = $items;
     ```
 
+
+### [Mixin] [Mixable] My macro doesn’t update an argument passed by reference.
+
+PHP passes arguments to `__call()` and `__callStatic()` by value, and macros are called through them. A parameter like `int &$value` gets a copy, so the variable you passed in is not changed. This is true for every Laravel macro, not only mixins.
+
+```php
+public function addPoints(int &$value): void
+{
+    $value = $value + $this->points;
+}
+
+$value = 10;
+$player->addPoints($value); // $value is still 10
+```
+
+There are a few ways around it:
+
+1. Return the value instead: `$value = $player->addPoints($value);`
+2. Pass an object, because objects are passed by handle.
+3. For a Mixable, call the method on an instance of the subclass. It is a real method there, so references work.
+
+The PHPStan extension reports by-reference parameters on Mixin and Mixable methods (see [Static Analysis](#static-analysis)).
 
 ### [Mixable] When the subclass constructor has logic that is not getting triggered.
 
