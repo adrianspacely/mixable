@@ -13,7 +13,7 @@ trait ForwardsScopedCalls
      *
      * @param  mixed  $object
      * @param  string  $method
-     * @param  array  $parameters
+     * @param  array<array-key, mixed>  $parameters
      * @return mixed
      *
      * @throws \BadMethodCallException
@@ -54,7 +54,7 @@ trait ForwardsScopedCalls
      *
      * @param  mixed  $object
      * @param  string  $method
-     * @param  array  $parameters
+     * @param  array<array-key, mixed>  $parameters
      * @return mixed
      *
      * @throws \BadMethodCallException

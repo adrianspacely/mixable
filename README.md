@@ -7,7 +7,7 @@
 
 Nicer mixins for `Macroable` classes in Laravel.
 
-*[ TODO: Link to blog post explaining the `Macorable` trait; how it does mixins; and what this package does differently. ]*
+*[ TODO: Link to blog post explaining the `Macroable` trait, how it does mixins, and what this package does differently. ]*
 
 ![Macroable Mixins vs. Mixable Mixins](art/meme.jpeg)
 
@@ -19,12 +19,16 @@ You can install this package via composer:
 composer require adrianb93/mixable
 ```
 
+It needs PHP 8.2 or later, and Laravel 11, 12, or 13.
+
 ## Usage
 
 There are two traits in this package, `Mixin` and `Mixable`. They make public methods available to `Macroable` classes.
 
 - `Mixin` is used on a plain PHP class. You specify which `Macroable` classes it mixes into.
 - `Mixable` is for a subclass of a `Macroable`. It mixes into the `Macroable` class it extends.
+
+Classes that aren't `Macroable` can use them too, through [`mixed()`](#mixing-into-any-object).
 
 ### Registering the Macros
 
@@ -80,12 +84,12 @@ The package will throw an exception if the Mixin is a subclass of the Macroable.
 
 **Quick Mixin Facts:**
 
-- The `Mixin` trait is a decorator for the Macroable. Methods calls and attributes gets and sets are possible for private, protected, and public visibility.
+- The `Mixin` trait is a decorator for the Macroable. You can call its methods and get and set its attributes, whether they are public, protected, or private.
 - When returning `$this` (Mixin), the registered macro switches the return value to the Macroable.
-- A decorator on the most part feels like it is Macroable, but it’s not in it’s scope. If you need to be in the Macroable scope, you can use `$this->inScope($callback)`. Example:
+- For the most part, a decorator feels like the Macroable, but it isn’t in its scope. If you need to be in the Macroable’s scope, you can use `$this->inScope($callback)`. Example:
 
     ```php
-    LoggerMixin::mix(Collection::class)
+    LoggerMixin::mix(Collection::class);
 
     class LoggerMixin
     {
@@ -105,7 +109,6 @@ The package will throw an exception if the Mixin is a subclass of the Macroable.
     ```
 
 - When you call a "Mixin macro" statically, there is no Macroable instance to decorate. `static::` calls are forwarded to the Macroable class, and `$this->inScope($callback)` runs in the Macroable class scope. Getting or setting attributes throws a `LogicException`.
-
 
 ### Mixables
 
@@ -157,7 +160,7 @@ The called method is scoped to the subclass (Mixable) in either case. If parent 
 ```php
 \App\Models\Collections\Collection::mix();
 
-namespace \App\Models\Collections;
+namespace App\Models\Collections;
 
 class Collection extends EloquentCollection
 {
@@ -348,7 +351,7 @@ The error identifier is `mixable.refArgument`.
 
 ## Troubleshooting
 
-### [Mixable] My Mixin isn’t returning an instance of the parent (Macroable), it is returning an instance of the child/subclass (Mixable).
+### [Mixable] My Mixable isn’t returning an instance of the parent (Macroable), it is returning an instance of the child/subclass (Mixable).
 
 A good example of this is an immutable Macroable like `Illuminate\Support\Collection`. Most methods return a new Collection instance. This is not the same instance.
 
@@ -365,10 +368,9 @@ There are a couple of ways around this issue:
 
     ```php
     $items = $this->items;
-    array_walk($items, fn (&$item) => $items = $item * 2);
+    array_walk($items, fn (&$item) => $item = $item * 2);
     $this->items = $items;
     ```
-
 
 ### [Mixin] [Mixable] My macro doesn’t update an argument passed by reference.
 
@@ -431,8 +433,8 @@ If you need `$this` to be the Macroable instance, then use `$this->inScope($call
 ```php
 public function notify(): void
 {
-    // Before: ExampleNoticiation::notify($this);
-    $this->inScope(fn () => ExampleNoticiation::notify($this));
+    // Before: ExampleNotification::notify($this);
+    $this->inScope(fn () => ExampleNotification::notify($this));
 }
 ```
 
@@ -463,7 +465,7 @@ I like to use dedicated query builders and collections for my models. I have a b
 
 - [Follow the Eloquent road](https://timacdonald.me/follow-the-eloquent-road-laracon-talk/)
 - [Giving collections a voice](https://timacdonald.me/giving-collections-a-voice/)
-- [Dedicated query builders for Eloquent models](https://timacdonald.me/giving-collections-a-voice/)
+- [Dedicated query builders for Eloquent models](https://timacdonald.me/dedicated-eloquent-model-query-builders/)
 
 ## License
 

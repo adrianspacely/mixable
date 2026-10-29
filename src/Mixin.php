@@ -6,21 +6,29 @@ use AdrianBrown\Mixable\Concerns\ForwardsScopedCalls;
 use Closure;
 use InvalidArgumentException;
 use LogicException;
+use ReflectionClass;
 
 trait Mixin
 {
     use ForwardsScopedCalls;
 
+    /** @var object|null */
     protected $macroableInstance;
 
+    /** @var class-string|null */
     protected $macroableClass;
 
+    /**
+     * @param class-string|list<class-string>|null $macroables
+     */
     public static function mix($macroables = null): void
     {
+        $defaults = (new ReflectionClass(static::class))->getDefaultProperties();
+
         $macroables = collect()
-            ->wrap((new static())->macroable ?? '')
+            ->wrap($defaults['macroable'] ?? '')
             ->merge(collect()->wrap($macroables ?? []))
-            ->merge(collect()->wrap((new static())->macroables ?? []))
+            ->merge(collect()->wrap($defaults['macroables'] ?? []))
             ->filter();
 
         $mixin = get_called_class();
@@ -39,6 +47,11 @@ trait Mixin
         }
     }
 
+    /**
+     * @param object|null $macroableInstance
+     * @param class-string|null $macroableClass
+     * @return self
+     */
     public static function newMixableInstance($macroableInstance, ?string $macroableClass = null)
     {
         return tap(new self(), function ($mixin) use ($macroableInstance, $macroableClass) {
@@ -47,11 +60,17 @@ trait Mixin
         });
     }
 
+    /**
+     * @return object|null
+     */
     public function newMacroableInstance()
     {
         return $this->macroableInstance;
     }
 
+    /**
+     * @return mixed
+     */
     protected function inScope(Closure $callback)
     {
         if ($this->macroableInstance === null && $this->macroableClass !== null) {
@@ -73,12 +92,16 @@ trait Mixin
         return $isClass && $this->macroableInstance instanceof $this->macroableClass ? $this->macroableClass : null;
     }
 
+    /**
+     * @param  mixed  $object
+     * @return class-string|null
+     */
     protected function forwardedCallScope($object)
     {
         return $object === $this->macroableInstance ? $this->macroableScope() : null;
     }
 
-    public function __get($attribute)
+    public function __get(string $attribute): mixed
     {
         if (in_array($attribute, ['macroable', 'macroables'])) {
             return [];
@@ -89,14 +112,17 @@ trait Mixin
         return $this->inScope(fn () => $this->{$attribute});
     }
 
-    public function __set($attribute, $value)
+    public function __set(string $attribute, mixed $value): void
     {
         $this->ensureMacroableInstance('set', $attribute);
 
         $this->inScope(fn () => $this->{$attribute} = $value);
     }
 
-    public function __call($method, $parameters)
+    /**
+     * @param array<array-key, mixed> $parameters
+     */
+    public function __call(string $method, array $parameters): mixed
     {
         if ($this->macroableInstance === null && $this->macroableClass !== null) {
             return $this->inScope(static fn () => static::{$method}(...$parameters));
@@ -105,11 +131,20 @@ trait Mixin
         return $this->forwardDecoratedCallTo($this->macroableInstance, $method, $parameters);
     }
 
-    public static function __callStatic($method, $parameters)
+    /**
+     * Forwards `static::` calls made within the mixin to the object the mixin is decorating.
+     *
+     * @param array<array-key, mixed> $parameters
+     */
+    public static function __callStatic(string $method, array $parameters): mixed
     {
-        $mixin = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 1)[0]['object'];
+        $mixin = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 1)[0]['object'] ?? null;
 
-        return Mixer::invade($mixin, fn () => $this->{$method}(...$parameters));
+        if (! $mixin instanceof self) {
+            static::throwBadMethodCallException($method);
+        }
+
+        return Mixer::invade($mixin, fn (self $mixin) => $mixin->{$method}(...$parameters));
     }
 
     private function ensureMacroableInstance(string $action, string $attribute): void

@@ -6,10 +6,8 @@ parameters:
     level: 6
     paths:
         - src
+        - tests/PHPStan/analysed
     tmpDir: build/phpstan
     checkOctaneCompatibility: true
     checkModelProperties: true
-    ignoreErrors:
-        -
-            identifier: trait.unused
 

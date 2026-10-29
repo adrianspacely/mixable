@@ -8,6 +8,7 @@ use ReflectionClass;
 
 trait Mixable
 {
+    /** @var object|null */
     protected $macroableInstance;
 
     public static function mix(?string $macroable = null): void
@@ -27,6 +28,9 @@ trait Mixable
         Mixer::mixin($mixin, $macroable, fn ($parent) => $mixin::newMixableInstance($parent));
     }
 
+    /**
+     * @return mixed
+     */
     protected function inScope(Closure $callback)
     {
         if ($this->macroableInstance === null) {
@@ -42,6 +46,10 @@ trait Mixable
         }
     }
 
+    /**
+     * @param object|null $parent
+     * @return static
+     */
     protected static function newMixableInstance($parent)
     {
         $mixable = (new ReflectionClass(get_called_class()))->newInstanceWithoutConstructor();
@@ -52,6 +60,9 @@ trait Mixable
         return $mixable;
     }
 
+    /**
+     * @return object
+     */
     public function newMacroableInstance()
     {
         $this->pushMacroableState();
@@ -77,13 +88,16 @@ trait Mixable
     {
         $class = get_parent_class($this);
 
-        while (! $this->macroableInstance instanceof $class) {
+        while ($class !== false && ! $this->macroableInstance instanceof $class) {
             $class = get_parent_class($class);
         }
 
-        return $class;
+        return $class === false ? static::class : $class;
     }
 
+    /**
+     * @return void
+     */
     public function bootMixable()
     {
     }

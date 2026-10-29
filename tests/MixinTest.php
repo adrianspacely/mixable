@@ -9,6 +9,7 @@ use AdrianBrown\Mixable\Tests\Support\Counter;
 use AdrianBrown\Mixable\Tests\Support\SpecialCounter;
 use AdrianBrown\Mixable\Tests\Support\TestMe;
 use AdrianBrown\Mixable\Tests\Support\TransposeCollectionMethod;
+use BadMethodCallException;
 use Error;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -178,6 +179,11 @@ it('will affect the macroable instance when making method calls', function () {
     expect($resultA)->not->toBeInstanceOf(get_class($mixin));
     expect($resultB)->not->toBeInstanceOf(get_class($mixin));
     expect($collection->toArray())->toBe(['a', '2', 'd']);
+});
+
+it('throws a bad method call exception for a static call made outside a mixin instance', function () {
+    expect(fn () => CollectionMixin::undefinedStaticMethod())
+        ->toThrow(BadMethodCallException::class, 'Call to undefined method ' . CollectionMixin::class . '::undefinedStaticMethod()');
 });
 
 it('will forward static calls to the macroable', function () {
