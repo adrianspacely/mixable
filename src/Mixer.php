@@ -8,6 +8,9 @@ use ReflectionMethod;
 
 class Mixer
 {
+    /** @var array<class-string, array<string, class-string>> */
+    protected static array $mixins = [];
+
     public static function mixin(string $mixin, string $macroable, ?Closure $createMixinInstance = null): void
     {
         $createMixinInstance ??= fn () => resolve($mixin);
@@ -19,11 +22,13 @@ class Mixer
                     && $method->isStatic() === false
                     && $method->isAbstract() === false
                     && $class->getName() === $method->getDeclaringClass()->getName()
-                    && in_array($method->getName(), ['newMacroableInstance', 'newMixableInstance']) === false;
+                    && in_array($method->getName(), static::traitMethods()) === false;
             })
             ->map->getName();
 
         foreach ($methods as $method) {
+            static::$mixins[$macroable][$method] = $mixin;
+
             $macroable::macro($method, function (...$args) use ($method, $createMixinInstance) {
                 /** @var object|null $macroableInstance */
                 $macroableInstance = isset($this) ? $this : null; // @phpstan-ignore-line
@@ -41,6 +46,36 @@ class Mixer
                 return $result === $mixin ? $macroable : $result;
             });
         }
+    }
+
+    /**
+     * The methods the package's traits add to a mixin, which are not macros.
+     *
+     * @return list<string>
+     */
+    protected static function traitMethods(): array
+    {
+        return collect([Mixin::class, Mixable::class])
+            ->flatMap(fn (string $trait) => class_uses_recursive($trait) + [$trait => $trait])
+            ->flatMap(fn (string $trait) => get_class_methods($trait))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * The macros registered by `mixin()`, keyed by macroable class then method name, with the mixin class as the value.
+     *
+     * @return array<class-string, array<string, class-string>>
+     */
+    public static function mixins(): array
+    {
+        return static::$mixins;
+    }
+
+    public static function forgetMixins(): void
+    {
+        static::$mixins = [];
     }
 
     /**

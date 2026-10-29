@@ -2,6 +2,7 @@
 
 namespace AdrianBrown\Mixable\Tests;
 
+use AdrianBrown\Mixable\Mixer;
 use AdrianBrown\Mixable\Mixin;
 use AdrianBrown\Mixable\Tests\Support\CollectionMixin;
 use AdrianBrown\Mixable\Tests\Support\TestMe;
@@ -41,6 +42,16 @@ it('does not add the macros to the macroable/s if `mix()` is not called', functi
 
     $mixin->mix(Collection::class);
     expect(Collection::hasMacro('transpose'))->toBe(true);
+});
+
+it('records which mixin each macro came from', function () {
+    CollectionMixin::mix([Collection::class, Request::class]);
+
+    expect(Mixer::mixins())->toBe([
+        Collection::class => ['transpose' => CollectionMixin::class],
+        Request::class => ['transpose' => CollectionMixin::class],
+    ]);
+    expect(Collection::hasMacro('__get'))->toBe(false);
 });
 
 it('adds the macro to the macroable via `mix(string)`', function () {

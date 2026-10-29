@@ -2,6 +2,7 @@
 
 namespace AdrianBrown\Mixable\Tests;
 
+use AdrianBrown\Mixable\Mixer;
 use AdrianBrown\Mixable\Tests\Support\Counter;
 use AdrianBrown\Mixable\Tests\Support\TestMe;
 use Closure;
@@ -18,6 +19,7 @@ class TestCase extends Orchestra
 
         $this->beKindAndRewind(function () {
             TestMe::reset();
+            Mixer::forgetMixins();
             Counter::flushMacros();
             Request::flushMacros();
             Collection::flushMacros();

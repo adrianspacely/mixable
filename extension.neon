@@ -1,2 +1,8 @@
+services:
+    -
+        class: AdrianBrown\Mixable\PHPStan\MixedMethodsExtension
+        tags:
+            - phpstan.broker.methodsClassReflectionExtension
+
 rules:
     - AdrianBrown\Mixable\PHPStan\ParameterByReferenceRule

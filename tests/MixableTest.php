@@ -51,6 +51,17 @@ it('does not add the macros to the class it extends if `mix()` is not called', f
     expect(Collection::hasMacro('transpose'))->toBe(true);
 });
 
+it('records which mixable each macro came from', function () {
+    CounterMixable::mix();
+
+    expect(Mixer::mixins()[Counter::class])->toMatchArray([
+        'increment' => CounterMixable::class,
+        'whoami' => CounterMixable::class,
+    ]);
+    expect(Mixer::mixins()[Counter::class])->not->toHaveKey('bootMixable');
+    expect(Counter::hasMacro('bootMixable'))->toBe(false);
+});
+
 it("creates the subclass instance using the macroable parent class instance's state", function () {
     ($mixable = new class () extends Collection {
         use Mixable;

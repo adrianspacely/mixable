@@ -258,7 +258,27 @@ includes:
     - vendor/adrianb93/mixable/extension.neon
 ```
 
-It reports Mixin and Mixable methods with by-reference parameters, because macros receive arguments by value:
+**Macros have the mixin method's types:**
+
+PHPStan sees each macro as the Mixin or Mixable method it calls, so arguments and return values are checked. `$this`, `static`, and `self` return types become the Macroable, because that is what the macro returns:
+
+```php
+class PointsMixin
+{
+    use Mixin;
+
+    public function addPoints(int $points): static { ... }
+}
+
+$player->addPoints(5);     // Player
+$player->addPoints('five'); // Error: Parameter #1 $points of method Player::addPoints() expects int, string given.
+```
+
+Macros are registered when your app boots, so this needs [Larastan](https://github.com/larastan/larastan), which boots your app before analysing it. Larastan also describes macros, but without their types, and PHPStan uses whichever extension is included first. phpstan/extension-installer includes packages in alphabetical order, so this one comes first. If you include the extensions yourself, include this one before Larastan's.
+
+**By-reference parameters are reported:**
+
+Macros receive arguments by value (see [troubleshooting](#mixin-mixable-my-macro-doesnt-update-an-argument-passed-by-reference)), so by-reference parameters on Mixin and Mixable methods are reported:
 
 ```
 Parameter #1 $value of Mixin method App\Mixins\PointsMixin::addPoints() is passed by reference, but macros receive arguments by value.

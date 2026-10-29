@@ -1,8 +1,12 @@
 includes:
+    # Mixable before Larastan, like phpstan/extension-installer orders them in an app.
     - ../../extension.neon
+    - ../../vendor/larastan/larastan/extension.neon
 
 parameters:
     level: 6
     paths:
         - data
     tmpDir: ../../build/phpstan-extension-test
+    bootstrapFiles:
+        - bootstrap.php

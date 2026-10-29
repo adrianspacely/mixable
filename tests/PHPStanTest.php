@@ -2,7 +2,7 @@
 
 /**
  * Runs PHPStan with the package's extension over tests/PHPStan/data, where each
- * line ending in `// error: ...` states what PHPStan should report.
+ * line ending in `// type: ...` or `// error: ...` states what PHPStan should report.
  */
 it('reports mixin problems to PHPStan', function () {
     $root = dirname(__DIR__);
@@ -22,8 +22,8 @@ it('reports mixin problems to PHPStan', function () {
         $expected = [];
 
         foreach (file($file) as $index => $line) {
-            if (preg_match('#// error: (.+)$#', rtrim($line), $match)) {
-                $expected[] = sprintf('%d: %s', $index + 1, $match[1]);
+            if (preg_match('#// (type|error): (.+)$#', rtrim($line), $match)) {
+                $expected[] = sprintf('%d: %s', $index + 1, $match[1] === 'type' ? "Dumped type: {$match[2]}" : $match[2]);
             }
         }
 
