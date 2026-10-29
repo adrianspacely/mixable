@@ -106,6 +106,8 @@ The package will throw an exception if the Mixin is a subclass of the Macroable.
     }
     ```
 
+- When you call a "Mixin macro" statically, there is no Macroable instance to decorate. `static::` calls are forwarded to the Macroable class, and `$this->inScope($callback)` runs in the Macroable class scope. Getting or setting attributes throws a `LogicException`.
+
 
 ### Mixables
 

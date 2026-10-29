@@ -6,8 +6,10 @@ use AdrianBrown\Mixable\Mixin;
 use AdrianBrown\Mixable\Tests\Support\CollectionMixin;
 use AdrianBrown\Mixable\Tests\Support\TestMe;
 use AdrianBrown\Mixable\Tests\Support\TransposeCollectionMethod;
+use Error;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use LogicException;
 
 it('works', function () {
     CollectionMixin::mix(Collection::class);
@@ -954,7 +956,81 @@ test('the mixin can set private static attributes on the macroable through an `i
 });
 
 test('can call a macro statically', function () {
-    $this->markTestIncomplete('do better');
+    ($mixin = new class () {
+        use Mixin;
+
+        public string $macroable = TestMe::class;
+
+        public function returnValue()
+        {
+            return 'value';
+        }
+
+        public function returnThis()
+        {
+            return $this;
+        }
+    })->mix();
+
+    expect(TestMe::returnValue())->toBe('value');
+    expect(TestMe::returnThis())->toBeInstanceOf(get_class($mixin));
+});
+
+test('a macro called statically forwards static calls to the macroable class', function () {
+    (new class () {
+        use Mixin;
+
+        public string $macroable = TestMe::class;
+
+        public function forwardStaticCall()
+        {
+            return static::publicStaticCallReturningValue();
+        }
+
+        public function forwardNonStaticCall()
+        {
+            return $this->publicCallReturningValue();
+        }
+    })->mix();
+
+    expect(TestMe::forwardStaticCall())->toBe('public_static_call_result');
+    expect(fn () => TestMe::forwardNonStaticCall())->toThrow(Error::class, 'cannot be called statically');
+});
+
+test('a macro called statically uses the macroable class scope within an `inScope` callback', function () {
+    (new class () {
+        use Mixin;
+
+        public string $macroable = TestMe::class;
+
+        public function getPrivateStaticAttribute()
+        {
+            return $this->inScope(fn () => static::$privateStaticAttribute);
+        }
+    })->mix();
+
+    expect(TestMe::getPrivateStaticAttribute())->toBe('private_static_attribute_value');
+});
+
+test('a macro called statically cannot get or set attributes on the macroable', function () {
+    (new class () {
+        use Mixin;
+
+        public string $macroable = TestMe::class;
+
+        public function getAttribute()
+        {
+            return $this->publicAttribute;
+        }
+
+        public function setAttribute()
+        {
+            $this->publicAttribute = 'value';
+        }
+    })->mix();
+
+    expect(fn () => TestMe::getAttribute())->toThrow(LogicException::class, 'Cannot get [publicAttribute] on [' . TestMe::class . '] because the macro was called statically.');
+    expect(fn () => TestMe::setAttribute())->toThrow(LogicException::class, 'Cannot set [publicAttribute] on [' . TestMe::class . '] because the macro was called statically.');
 });
 
 test('bug: a mixin macro must support method parameters by reference', function () {

@@ -5,12 +5,15 @@ namespace AdrianBrown\Mixable;
 use AdrianBrown\Mixable\Concerns\ForwardsScopedCalls;
 use Closure;
 use InvalidArgumentException;
+use LogicException;
 
 trait Mixin
 {
     use ForwardsScopedCalls;
 
     protected $macroableInstance;
+
+    protected $macroableClass;
 
     public static function mix($macroables = null): void
     {
@@ -32,13 +35,16 @@ trait Mixin
                 );
             }
 
-            Mixer::mixin($mixin, $macroable, fn ($macroable) => $mixin::newMixableInstance($macroable));
+            Mixer::mixin($mixin, $macroable, fn ($macroable, $macroableClass) => $mixin::newMixableInstance($macroable, $macroableClass));
         }
     }
 
-    public static function newMixableInstance($macroableInstance)
+    public static function newMixableInstance($macroableInstance, ?string $macroableClass = null)
     {
-        return tap(new self(), fn ($mixin) => $mixin->macroableInstance = $macroableInstance);
+        return tap(new self(), function ($mixin) use ($macroableInstance, $macroableClass) {
+            $mixin->macroableInstance = $macroableInstance;
+            $mixin->macroableClass = $macroableClass;
+        });
     }
 
     public function newMacroableInstance()
@@ -48,6 +54,10 @@ trait Mixin
 
     protected function inScope(Closure $callback)
     {
+        if ($this->macroableInstance === null && $this->macroableClass !== null) {
+            return Closure::bind($callback, null, $this->macroableClass)();
+        }
+
         return Mixer::invade($this->macroableInstance, $callback);
     }
 
@@ -57,16 +67,24 @@ trait Mixin
             return [];
         }
 
+        $this->ensureMacroableInstance('get', $attribute);
+
         return $this->inScope(fn () => $this->{$attribute});
     }
 
     public function __set($attribute, $value)
     {
+        $this->ensureMacroableInstance('set', $attribute);
+
         $this->inScope(fn () => $this->{$attribute} = $value);
     }
 
     public function __call($method, $parameters)
     {
+        if ($this->macroableInstance === null && $this->macroableClass !== null) {
+            return $this->inScope(static fn () => static::{$method}(...$parameters));
+        }
+
         return $this->forwardDecoratedCallTo($this->macroableInstance, $method, $parameters);
     }
 
@@ -75,5 +93,14 @@ trait Mixin
         $mixin = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 1)[0]['object'];
 
         return Mixer::invade($mixin, fn () => $this->{$method}(...$parameters));
+    }
+
+    private function ensureMacroableInstance(string $action, string $attribute): void
+    {
+        if ($this->macroableInstance === null && $this->macroableClass !== null) {
+            throw new LogicException(
+                "Cannot {$action} [{$attribute}] on [{$this->macroableClass}] because the macro was called statically."
+            );
+        }
     }
 }
