@@ -2,6 +2,7 @@
 
 namespace AdrianBrown\Mixable\Tests;
 
+use AdrianBrown\Mixable\Tests\Support\Counter;
 use AdrianBrown\Mixable\Tests\Support\TestMe;
 use Closure;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -17,6 +18,7 @@ class TestCase extends Orchestra
 
         $this->beKindAndRewind(function () {
             TestMe::reset();
+            Counter::flushMacros();
             Request::flushMacros();
             Collection::flushMacros();
             EloquentCollection::flushMacros();

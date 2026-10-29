@@ -4,6 +4,7 @@ namespace AdrianBrown\Mixable;
 
 use Closure;
 use InvalidArgumentException;
+use ReflectionClass;
 
 trait Mixable
 {
@@ -28,34 +29,59 @@ trait Mixable
 
     protected function inScope(Closure $callback)
     {
-        return Mixer::invade($this->macroableInstance ?? $this, $callback);
+        if ($this->macroableInstance === null) {
+            return Mixer::invade($this, $callback);
+        }
+
+        $this->pushMacroableState();
+
+        try {
+            return Mixer::invade($this->macroableInstance, $callback);
+        } finally {
+            $this->pullMacroableState();
+        }
     }
 
     protected static function newMixableInstance($parent)
     {
-        // Idea:
-        // - Default is new mixable instance without constructor: https://www.php.net/manual/en/reflectionclass.newinstancewithoutconstructor.php
-        // - Copy the properties that exist in the $parent to the mixable instance
-        // - Set `$mixable->macroableInstance = $parent` on the mixin so that we can do the reverse on out
-        // Fallback?
-        // - This is the "in" method - do as you wish to make an instance of the mixable subclass.
+        $mixable = (new ReflectionClass(get_called_class()))->newInstanceWithoutConstructor();
+        $mixable->macroableInstance = $parent;
+        $mixable->pullMacroableState();
+        $mixable->bootMixable();
 
-        return tap(resolve(get_called_class()), function ($mixable) use ($parent) {
-            $mixable->macroableInstance = $parent;
-            $mixable->bootMixable();
-        });
+        return $mixable;
     }
 
     public function newMacroableInstance()
     {
-        // Idea:
-        // - Given we have `$mixable->macroableInstance`
-        // - Copy the mixable's class properties to the macroable's class properties if it exists there.
-        // - `return $this->macroableInstance;` given the state is the same as the mixable's.
-        // Fallback?
-        // - This is the "out" method - do as you wish to return the macroable instance, or happily return the mixable subclass instance ($this).
+        $this->pushMacroableState();
 
-        return $this;
+        return $this->macroableInstance ?? $this;
+    }
+
+    protected function pullMacroableState(): void
+    {
+        if ($this->macroableInstance !== null) {
+            Mixer::copyState($this->macroableInstance, $this, $this->sharedMacroableClass());
+        }
+    }
+
+    protected function pushMacroableState(): void
+    {
+        if ($this->macroableInstance !== null) {
+            Mixer::copyState($this, $this->macroableInstance, $this->sharedMacroableClass());
+        }
+    }
+
+    private function sharedMacroableClass(): string
+    {
+        $class = get_parent_class($this);
+
+        while (! $this->macroableInstance instanceof $class) {
+            $class = get_parent_class($class);
+        }
+
+        return $class;
     }
 
     public function bootMixable()

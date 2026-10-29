@@ -29,11 +29,16 @@ class Mixer
                 $macroableInstance = isset($this) ? $this : null; // @phpstan-ignore-line
                 $mixin = $createMixinInstance($macroableInstance);
                 $result = call_user_func([$mixin, $method], ...$args);
-                $resultIsMixin = $result === $mixin && in_array(Mixin::class, class_uses($mixin));
-                $resultIsMixable = $result === $mixin && in_array(Mixable::class, class_uses($mixin));
-                $macroable = $macroableInstance !== null && ($resultIsMixin || $resultIsMixable) ? $result->newMacroableInstance() : null;
+                $traits = class_uses_recursive($mixin);
+                $isMixinOrMixable = in_array(Mixin::class, $traits) || in_array(Mixable::class, $traits);
 
-                return $macroable ?? $result;
+                if ($macroableInstance === null || ! $isMixinOrMixable) {
+                    return $result;
+                }
+
+                $macroable = $mixin->newMacroableInstance();
+
+                return $result === $mixin ? $macroable : $result;
             });
         }
     }
@@ -52,5 +57,32 @@ class Mixer
         }
 
         return $callback($target);
+    }
+
+    /**
+     * Copy the non-static properties declared on the given class and its parents from one object to another.
+     */
+    public static function copyState(object $from, object $to, string $class): void
+    {
+        do {
+            foreach ((new ReflectionClass($class))->getProperties() as $property) {
+                if ($property->isStatic() || $property->getDeclaringClass()->getName() !== $class) {
+                    continue;
+                }
+
+                if (! $property->isInitialized($from)) {
+                    continue;
+                }
+
+                $value = $property->getValue($from);
+
+                if ($property->isInitialized($to) && $property->getValue($to) === $value) {
+                    continue;
+                }
+
+                $name = $property->getName();
+                Closure::bind(fn () => $to->{$name} = $value, null, $class)();
+            }
+        } while ($class = get_parent_class($class));
     }
 }

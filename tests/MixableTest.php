@@ -3,8 +3,12 @@
 namespace AdrianBrown\Mixable\Tests;
 
 use AdrianBrown\Mixable\Mixable;
+use AdrianBrown\Mixable\Mixer;
 use AdrianBrown\Mixable\Tests\Support\CollectionMixable;
+use AdrianBrown\Mixable\Tests\Support\Counter;
+use AdrianBrown\Mixable\Tests\Support\CounterMixable;
 use Illuminate\Support\Collection;
+use ReflectionClass;
 
 it('works', function () {
     CollectionMixable::mix();
@@ -84,63 +88,155 @@ it("creates the subclass instance using the macroable parent class instance's st
 });
 
 it("returns the macroable instance with it's state updated to be the same as the mixable subclass state", function () {
-    $this->markTestIncomplete('do better');
+    CounterMixable::mix();
+    $counter = new Counter(5);
+
+    $result = $counter->increment();
+
+    expect($result)->toBe($counter);
+    expect($counter->counts())->toBe([6, 6, 6, 1]);
 });
 
 test('the mixable interacts with itself', function () {
-    $this->markTestIncomplete('do better');
+    CounterMixable::mix();
+    $counter = new Counter();
+
+    $result = $counter->incrementTwice();
+
+    expect($result)->toBe($counter);
+    expect($counter->counts())->toBe([2, 2, 2, 2]);
 });
 
 test("the parent macroable instance's state is not affected within the mixable subclass", function () {
-    $this->markTestIncomplete('do better');
+    CounterMixable::mix();
+    $counter = new Counter(5);
+
+    $countsDuringMacro = $counter->incrementAndCountMacroable();
+
+    expect($countsDuringMacro)->toBe([5, 5, 5, 0]);
+    expect($counter->counts())->toBe([6, 6, 6, 1]);
 });
 
 test('can pull state from the macroable to the mixable', function () {
-    // only class attribute keys on the macroable are pulled from
-    // private attributes are pulled
-    // protected attributes are pulled
-    // public attributes are pulled
-    $this->markTestIncomplete('do better');
+    $counter = new Counter(5);
+    $counter->bump();
+    $mixable = (new ReflectionClass(CounterMixable::class))->newInstanceWithoutConstructor();
+    $mixable->booted = 'mixable_only';
+
+    Mixer::invade($mixable, function () use ($counter) {
+        $this->macroableInstance = $counter;
+        $this->pullMacroableState();
+    });
+
+    expect($mixable->counts())->toBe([6, 6, 6, 1]);
+    expect($mixable->constructed)->toBe(true);
+    expect($mixable->booted)->toBe('mixable_only');
 });
 
 test('can push state from the mixable to the macroable', function () {
-    // only class attribute keys on the macroable are pushed to
-    // private attributes are pushed
-    // protected attributes are pushed
-    // public attributes are pushed
-    $this->markTestIncomplete('do better');
+    $counter = new Counter();
+    $mixable = new CounterMixable(5);
+    $mixable->bump();
+
+    Mixer::invade($mixable, function () use ($counter) {
+        $this->macroableInstance = $counter;
+        $this->pushMacroableState();
+    });
+
+    expect($counter->counts())->toBe([6, 6, 6, 1]);
+    expect(property_exists($counter, 'booted'))->toBe(false);
 });
 
 test('cannot pull state from the macroable to the mixable if the macroable is not set', function () {
-    $this->markTestIncomplete('do better');
+    $mixable = new CounterMixable(5);
+
+    Mixer::invade($mixable, fn () => $this->pullMacroableState());
+
+    expect($mixable->counts())->toBe([5, 5, 5, 0]);
 });
 
 test('cannot push state from the mixable to the macroable if the macroable is not set', function () {
-    $this->markTestIncomplete('do better');
+    $mixable = new CounterMixable(5);
+
+    Mixer::invade($mixable, fn () => $this->pushMacroableState());
+
+    expect($mixable->counts())->toBe([5, 5, 5, 0]);
 });
 
 test('returning a different mixable instance will not result in a swap of the return value to the macroable instance', function () {
-    $this->markTestIncomplete('do better');
+    CounterMixable::mix();
+    $counter = new Counter();
+
+    $result = $counter->incrementAndCopy();
+
+    expect($result)->toBeInstanceOf(CounterMixable::class);
+    expect($result->counts())->toBe([1, 1, 1, 1]);
 });
 
 test('returning some primative value will not result in a swap of the return value to the macroable instance', function () {
-    $this->markTestIncomplete('do better');
+    CounterMixable::mix();
+    $counter = new Counter(5);
+
+    expect($counter->incrementAndCount())->toBe(6);
 });
 
 test('returning some primative value will still result in the macroable state being synced with the mixable state', function () {
-    $this->markTestIncomplete('do better');
+    CounterMixable::mix();
+    $counter = new Counter(5);
+
+    $counter->incrementAndCount();
+
+    expect($counter->counts())->toBe([6, 6, 6, 1]);
 });
 
 test("`inScope` sets the macroable parent instance's state going in, and sets the mixable subclass instance's state going out", function () {
-    $this->markTestIncomplete('do better');
+    CounterMixable::mix();
+    $counter = new Counter();
+
+    $countsInMixable = $counter->incrementInAndOutOfScope();
+
+    expect($countsInMixable)->toBe([2, 2, 2, 2]);
+    expect($counter->counts())->toBe([2, 2, 2, 2]);
+});
+
+test('`inScope` uses the macroable parent class scope when called from a macro', function () {
+    CounterMixable::mix();
+
+    expect((new Counter())->whoami())->toBe(Counter::class);
+    expect((new CounterMixable())->whoami())->toBe(CounterMixable::class);
 });
 
 test('can implement a `bootMixable()` function to do something to the mixable after it is instantiated', function () {
-    $this->markTestIncomplete('do better');
+    CounterMixable::mix();
+
+    expect((new Counter())->wasBooted())->toBe(true);
+    expect((new CounterMixable())->wasBooted())->toBe(false);
 });
 
 test('can call a macro statically', function () {
-    $this->markTestIncomplete('do better');
+    CounterMixable::mix();
+
+    $result = Counter::increment();
+
+    expect($result)->toBeInstanceOf(CounterMixable::class);
+    expect($result->counts())->toBe([1, 1, 1, 1]);
+    expect(Counter::whoami())->toBe(CounterMixable::class);
+});
+
+test('only copies the state of classes the macroable instance shares with the mixable', function () {
+    (new class () extends CounterMixable {
+        public function incrementGrandchild()
+        {
+            return $this->increment();
+        }
+    })->mix(Counter::class);
+    $counter = new Counter(5);
+
+    $result = $counter->incrementGrandchild();
+
+    expect($result)->toBe($counter);
+    expect($counter->counts())->toBe([6, 6, 6, 1]);
+    expect(property_exists($counter, 'booted'))->toBe(false);
 });
 
 test('bug: a mixable macro must support method parameters by reference', function () {

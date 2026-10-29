@@ -146,6 +146,8 @@ When you call a "Mixable macro":
     2. If the return value is `$this` (Mixable), it is switched to the parent (Macroable).
 5. The registered macro returns the value.
 
+When you call a "Mixable macro" statically, there is no parent (Macroable) instance. The subclass (Mixable) is still instantiated without a constructor, but no state is copied in or out, and `$this` is returned as the subclass (Mixable).
+
 When you call a method on an instance of the subclass (Mixable) (not via a "Mixable macro"):
 
 - The `Mixable` trait does nothing. You’re in a normal ol’ instance.
@@ -253,7 +255,7 @@ class LoggerMixin
 
 A good example of this is an immutable Macroable like `Illuminate\Support\Collection`. Most methods return a new Collection instance. This is not the same instance.
 
-If the return value is not the same instance as the initial Mixable instance, then we do not copy its values to the Macroable instance and we do not swap the return value to the Macroable.
+If the return value is not the same instance as the initial Mixable instance, then we do not swap the return value to the Macroable. The Mixable’s state is still copied back to the Macroable instance the macro was called on.
 
 ### [Mixin] PHP Warning: Indirect modification of overloaded property has no effect
 
