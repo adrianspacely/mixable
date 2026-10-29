@@ -5,4 +5,4 @@ services:
             - phpstan.broker.methodsClassReflectionExtension
 
 rules:
-    - AdrianBrown\Mixable\PHPStan\ParameterByReferenceRule
+    - AdrianBrown\Mixable\PHPStan\RefArgumentRule

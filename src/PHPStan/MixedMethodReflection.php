@@ -7,6 +7,7 @@ use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ExtendedMethodReflection;
 use PHPStan\Reflection\FunctionVariant;
 use PHPStan\Reflection\MethodReflection;
+use PHPStan\Reflection\ParameterReflection;
 use PHPStan\Reflection\ParametersAcceptor;
 use PHPStan\TrinaryLogic;
 use PHPStan\Type\StaticType;
@@ -17,7 +18,7 @@ use PHPStan\Type\TypeTraverser;
  * A mixin method, described as a method of the macroable it was mixed into.
  *
  * The macro returns the macroable when the mixin method returns itself, so `$this`, `static`,
- * and `self` return types become the macroable.
+ * and `self` return types become the macroable. By-reference parameters take arguments wrapped with `ref()`.
  */
 class MixedMethodReflection implements MethodReflection
 {
@@ -35,7 +36,8 @@ class MixedMethodReflection implements MethodReflection
 
     public function isStatic(): bool
     {
-        return false;
+        // Macros can be called statically too.
+        return true;
     }
 
     public function isPrivate(): bool
@@ -71,7 +73,7 @@ class MixedMethodReflection implements MethodReflection
         return array_map(fn (ParametersAcceptor $variant) => new FunctionVariant(
             $variant->getTemplateTypeMap(),
             $variant->getResolvedTemplateTypeMap(),
-            $variant->getParameters(),
+            array_map(fn (ParameterReflection $parameter) => $this->toMacroParameter($parameter), $variant->getParameters()),
             $variant->isVariadic(),
             $this->toMacroable($variant->getReturnType()),
         ), $this->mixinMethod->getVariants());
@@ -105,6 +107,18 @@ class MixedMethodReflection implements MethodReflection
     public function hasSideEffects(): TrinaryLogic
     {
         return $this->mixinMethod->hasSideEffects();
+    }
+
+    /**
+     * A macro gets its arguments by value, so a by-reference parameter takes its argument wrapped with `ref()`.
+     */
+    private function toMacroParameter(ParameterReflection $parameter): ParameterReflection
+    {
+        if ($parameter->passedByReference()->no()) {
+            return $parameter;
+        }
+
+        return new RefParameterReflection($parameter);
     }
 
     private function toMacroable(Type $type): Type

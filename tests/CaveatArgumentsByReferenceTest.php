@@ -41,6 +41,24 @@ test('problem: a mixable macro receives arguments by value, because PHP passes `
     expect($value)->toBe(10);
 });
 
+test('solution: wrap the argument with `ref()`', function () {
+    (new class () {
+        use Mixin;
+
+        public string $macroable = Counter::class;
+
+        public function addPoints(int &$value)
+        {
+            $value = $value + $this->publicCount;
+        }
+    })->mix();
+    $value = 10;
+
+    (new Counter(5))->addPoints(ref($value));
+
+    expect($value)->toBe(15);
+});
+
 test('solution: return the value instead', function () {
     (new class () {
         use Mixin;

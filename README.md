@@ -249,6 +249,33 @@ class LoggerMixin
 }
 ```
 
+## Passing Arguments by Reference
+
+PHP passes arguments to `__call()` and `__callStatic()` by value, and every macro is called through them. A parameter like `int &$value` gets a copy, so the variable you passed in is not changed. This is true for every Laravel macro, not only mixins.
+
+Wrap the argument with `ref()`, and the macro passes the variable by reference:
+
+```php
+class PointsMixin
+{
+    use Mixin;
+
+    public function addPoints(int &$value): void
+    {
+        $value = $value + $this->points;
+    }
+}
+
+$value = 10;
+
+$player->addPoints($value);      // $value is still 10
+$player->addPoints(ref($value)); // $value is now 15
+```
+
+`ref($value)` is the same as `new \AdrianBrown\Mixable\Ref($value)`. It holds a reference to the variable, and the macro unwraps it before calling your method. An argument wrapped with `ref()` is unwrapped for any parameter, so a parameter passed by value gets the value.
+
+You only need `ref()` when calling the macro. When you call a Mixable method on an instance of the subclass, it is a real method, so pass the variable as usual.
+
 ## Static Analysis
 
 The package includes a [PHPStan](https://phpstan.org) extension. If you use [phpstan/extension-installer](https://github.com/phpstan/extension-installer) it's enabled automatically, otherwise include it in your `phpstan.neon`:
@@ -276,15 +303,15 @@ $player->addPoints('five'); // Error: Parameter #1 $points of method Player::add
 
 Macros are registered when your app boots, so this needs [Larastan](https://github.com/larastan/larastan), which boots your app before analysing it. Larastan also describes macros, but without their types, and PHPStan uses whichever extension is included first. phpstan/extension-installer includes packages in alphabetical order, so this one comes first. If you include the extensions yourself, include this one before Larastan's.
 
-**By-reference parameters are reported:**
+**Arguments for by-reference parameters must use `ref()`:**
 
-Macros receive arguments by value (see [troubleshooting](#mixin-mixable-my-macro-doesnt-update-an-argument-passed-by-reference)), so by-reference parameters on Mixin and Mixable methods are reported:
+A by-reference parameter of a macro accepts its argument wrapped with `ref()`, and the wrapped variable is checked against the parameter's type. An argument that isn't wrapped is reported, because the macro would only get a copy:
 
 ```
-Parameter #1 $value of Mixin method App\Mixins\PointsMixin::addPoints() is passed by reference, but macros receive arguments by value.
+Parameter #1 $value of method App\Models\Player::addPoints() is passed by reference, but macros receive arguments by value. Wrap the argument with ref().
 ```
 
-The error identifier is `mixable.parameterByReference`. For a Mixable you only call on subclass instances, you can ignore it.
+The error identifier is `mixable.refArgument`.
 
 ## Troubleshooting
 
@@ -312,25 +339,7 @@ There are a couple of ways around this issue:
 
 ### [Mixin] [Mixable] My macro doesn’t update an argument passed by reference.
 
-PHP passes arguments to `__call()` and `__callStatic()` by value, and macros are called through them. A parameter like `int &$value` gets a copy, so the variable you passed in is not changed. This is true for every Laravel macro, not only mixins.
-
-```php
-public function addPoints(int &$value): void
-{
-    $value = $value + $this->points;
-}
-
-$value = 10;
-$player->addPoints($value); // $value is still 10
-```
-
-There are a few ways around it:
-
-1. Return the value instead: `$value = $player->addPoints($value);`
-2. Pass an object, because objects are passed by handle.
-3. For a Mixable, call the method on an instance of the subclass. It is a real method there, so references work.
-
-The PHPStan extension reports by-reference parameters on Mixin and Mixable methods (see [Static Analysis](#static-analysis)).
+Wrap the argument with `ref()`. See [Passing Arguments by Reference](#passing-arguments-by-reference).
 
 ### [Mixable] When the subclass constructor has logic that is not getting triggered.
 

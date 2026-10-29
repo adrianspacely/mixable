@@ -25,6 +25,16 @@ class TypedCounterMixin
         return $this;
     }
 
+    public function addPoints(int &$value): void
+    {
+        $value = $value + $this->publicCount;
+    }
+
+    public function swap(int &$left, int &$right): void
+    {
+        [$left, $right] = [$right, $left];
+    }
+
     public function label(): string
     {
         return "Count: {$this->publicCount}";

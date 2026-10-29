@@ -33,6 +33,12 @@ class Mixer
                 /** @var object|null $macroableInstance */
                 $macroableInstance = isset($this) ? $this : null; // @phpstan-ignore-line
                 $mixin = $createMixinInstance($macroableInstance, static::class);
+                foreach ($args as $key => $arg) {
+                    if ($arg instanceof Ref) {
+                        $args[$key] = &$arg->value;
+                    }
+                }
+
                 $result = $mixin->{$method}(...$args);
                 $traits = class_uses_recursive($mixin);
                 $isMixinOrMixable = in_array(Mixin::class, $traits) || in_array(Mixable::class, $traits);
