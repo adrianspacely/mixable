@@ -25,19 +25,23 @@ class Mixer
 
         foreach ($methods as $method) {
             $macroable::macro($method, function (...$args) use ($method, $createMixinInstance) {
-                /** @phpstan-ignore-next-line */
-                $mixin = $createMixinInstance(isset($this) ? $this : null);
+                /** @var object|null $macroableInstance */
+                $macroableInstance = isset($this) ? $this : null; // @phpstan-ignore-line
+                $mixin = $createMixinInstance($macroableInstance);
                 $result = call_user_func([$mixin, $method], ...$args);
                 $resultIsMixin = $result === $mixin && in_array(Mixin::class, class_uses($mixin));
                 $resultIsMixable = $result === $mixin && in_array(Mixable::class, class_uses($mixin));
-                $macroable = isset($this) && ($resultIsMixin || $resultIsMixable) ? $result->newMacroableInstance() : null;
+                $macroable = $macroableInstance !== null && ($resultIsMixin || $resultIsMixable) ? $result->newMacroableInstance() : null;
 
                 return $macroable ?? $result;
             });
         }
     }
 
-    /** @return mixed */
+    /**
+     * @param object|class-string|null $target
+     * @return mixed
+     */
     public static function invade($target, Closure $callback)
     {
         if ($target === null) {
