@@ -7,6 +7,8 @@ use AdrianBrown\Mixable\Mixin;
 use AdrianBrown\Mixable\Tests\Support\Counter;
 use ArrayObject;
 
+use function AdrianBrown\Mixable\ref;
+
 test('problem: a mixin macro receives arguments by value, because PHP passes `__call()` arguments by value', function () {
     (new class () {
         use Mixin;

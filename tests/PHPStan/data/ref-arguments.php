@@ -7,6 +7,7 @@ namespace AdrianBrown\Mixable\Tests\PHPStan\Data;
 use AdrianBrown\Mixable\Ref;
 use AdrianBrown\Mixable\Tests\Support\Counter;
 
+use function AdrianBrown\Mixable\ref;
 use function PHPStan\dumpType;
 
 $value = 10;

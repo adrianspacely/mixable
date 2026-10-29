@@ -14,6 +14,9 @@ use AdrianBrown\Mixable\Tests\Support\WalletMixin;
 use BadMethodCallException;
 use Illuminate\Support\Collection;
 
+use function AdrianBrown\Mixable\mixed;
+use function AdrianBrown\Mixable\ref;
+
 it('records mixins for a class that is not macroable', function () {
     WalletMixin::mix();
     WalletMixable::mix();

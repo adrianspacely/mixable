@@ -7,6 +7,7 @@ use AdrianBrown\Mixable\Mixer;
 use AdrianBrown\Mixable\Tests\Support\CollectionMixable;
 use AdrianBrown\Mixable\Tests\Support\Counter;
 use AdrianBrown\Mixable\Tests\Support\CounterMixable;
+use AdrianBrown\Mixable\Tests\Support\Ticket;
 use Illuminate\Support\Collection;
 use ReflectionClass;
 
@@ -232,6 +233,25 @@ test('can call a macro statically', function () {
     expect($result)->toBeInstanceOf(CounterMixable::class);
     expect($result->counts())->toBe([1, 1, 1, 1]);
     expect(Counter::whoami())->toBe(CounterMixable::class);
+});
+
+test('copies readonly properties into the mixable', function () {
+    (new class ('unused') extends Ticket {
+        use Mixable;
+
+        public function close()
+        {
+            $this->status = "closed {$this->id}";
+
+            return $this;
+        }
+    })->mix();
+    $ticket = new Ticket('T-1');
+
+    $result = $ticket->close();
+
+    expect($result)->toBe($ticket);
+    expect($ticket->status)->toBe('closed T-1');
 });
 
 test('only copies the state of classes the macroable instance shares with the mixable', function () {

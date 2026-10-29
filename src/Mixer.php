@@ -6,6 +6,7 @@ use BadMethodCallException;
 use Closure;
 use ReflectionClass;
 use ReflectionMethod;
+use ReflectionProperty;
 
 class Mixer
 {
@@ -14,6 +15,15 @@ class Mixer
 
     /** @var array<class-string, array<string, Closure>> */
     protected static array $factories = [];
+
+    /** @var array<class-string, bool> */
+    protected static array $isMixinOrMixable = [];
+
+    /** @var array<class-string, ReflectionClass<object>> */
+    protected static array $reflectionClasses = [];
+
+    /** @var array<string, list<ReflectionProperty>> */
+    protected static array $stateProperties = [];
 
     public static function mixin(string $mixin, string $macroable, ?Closure $createMixinInstance = null): void
     {
@@ -60,16 +70,39 @@ class Mixer
         $args = Ref::unwrap($args);
         $mixin = $createMixinInstance($macroableInstance, $macroableClass);
         $result = $mixin->{$method}(...$args);
-        $traits = class_uses_recursive($mixin);
-        $isMixinOrMixable = in_array(Mixin::class, $traits) || in_array(Mixable::class, $traits);
 
-        if ($macroableInstance === null || ! $isMixinOrMixable) {
+        if ($macroableInstance === null || ! static::isMixinOrMixable($mixin)) {
             return $result;
         }
 
         $macroable = $mixin->newMacroableInstance();
 
         return $result === $mixin ? $macroable : $result;
+    }
+
+    protected static function isMixinOrMixable(object $mixin): bool
+    {
+        return static::$isMixinOrMixable[get_class($mixin)] ??= (function () use ($mixin) {
+            $traits = class_uses_recursive($mixin);
+
+            return in_array(Mixin::class, $traits) || in_array(Mixable::class, $traits);
+        })();
+    }
+
+    /**
+     * Create an instance of the class without calling its constructor.
+     *
+     * @template T of object
+     *
+     * @param class-string<T> $class
+     * @return T
+     */
+    public static function newInstanceWithoutConstructor(string $class): object
+    {
+        static::$reflectionClasses[$class] ??= new ReflectionClass($class);
+
+        /** @var T */
+        return static::$reflectionClasses[$class]->newInstanceWithoutConstructor();
     }
 
     /**
@@ -163,25 +196,49 @@ class Mixer
      */
     public static function copyState(object $from, object $to, string $class): void
     {
-        do {
-            foreach ((new ReflectionClass($class))->getProperties() as $property) {
-                if ($property->isStatic() || $property->getDeclaringClass()->getName() !== $class) {
-                    continue;
-                }
-
-                if (! $property->isInitialized($from)) {
-                    continue;
-                }
-
-                $value = $property->getValue($from);
-
-                if ($property->isInitialized($to) && $property->getValue($to) === $value) {
-                    continue;
-                }
-
-                $name = $property->getName();
-                Closure::bind(fn () => $to->{$name} = $value, null, $class)();
+        foreach (static::stateProperties($class) as $property) {
+            if (! $property->isInitialized($from)) {
+                continue;
             }
-        } while ($class = get_parent_class($class));
+
+            $value = $property->getValue($from);
+
+            if ($property->isInitialized($to) && $property->getValue($to) === $value) {
+                continue;
+            }
+
+            if ($property->isReadOnly()) {
+                // A readonly property can only be initialised from the scope of the class that declares it.
+                $name = $property->getName();
+                Closure::bind(fn () => $to->{$name} = $value, null, $property->getDeclaringClass()->getName())();
+            } else {
+                $property->setValue($to, $value);
+            }
+        }
+    }
+
+    /**
+     * The non-static properties declared on the class and its parents.
+     *
+     * @return list<ReflectionProperty>
+     */
+    protected static function stateProperties(string $class): array
+    {
+        if (isset(static::$stateProperties[$class])) {
+            return static::$stateProperties[$class];
+        }
+
+        $properties = [];
+        $declaringClass = $class;
+
+        do {
+            foreach ((new ReflectionClass($declaringClass))->getProperties() as $property) {
+                if (! $property->isStatic() && $property->getDeclaringClass()->getName() === $declaringClass) {
+                    $properties[] = $property;
+                }
+            }
+        } while ($declaringClass = get_parent_class($declaringClass));
+
+        return static::$stateProperties[$class] = $properties;
     }
 }

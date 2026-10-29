@@ -5,6 +5,7 @@ namespace AdrianBrown\Mixable\Tests;
 use AdrianBrown\Mixable\Mixer;
 use AdrianBrown\Mixable\Tests\Support\Counter;
 use AdrianBrown\Mixable\Tests\Support\TestMe;
+use AdrianBrown\Mixable\Tests\Support\Ticket;
 use Closure;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ class TestCase extends Orchestra
             TestMe::reset();
             Mixer::forgetMixins();
             Counter::flushMacros();
+            Ticket::flushMacros();
             Request::flushMacros();
             Collection::flushMacros();
             EloquentCollection::flushMacros();

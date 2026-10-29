@@ -4,7 +4,6 @@ namespace AdrianBrown\Mixable;
 
 use Closure;
 use InvalidArgumentException;
-use ReflectionClass;
 
 trait Mixable
 {
@@ -52,7 +51,7 @@ trait Mixable
      */
     protected static function newMixableInstance($parent)
     {
-        $mixable = (new ReflectionClass(get_called_class()))->newInstanceWithoutConstructor();
+        $mixable = Mixer::newInstanceWithoutConstructor(static::class);
         $mixable->macroableInstance = $parent;
         $mixable->pullMacroableState();
         $mixable->bootMixable();

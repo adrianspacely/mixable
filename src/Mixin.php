@@ -54,10 +54,11 @@ trait Mixin
      */
     public static function newMixableInstance($macroableInstance, ?string $macroableClass = null)
     {
-        return tap(new self(), function ($mixin) use ($macroableInstance, $macroableClass) {
-            $mixin->macroableInstance = $macroableInstance;
-            $mixin->macroableClass = $macroableClass;
-        });
+        $mixin = new self();
+        $mixin->macroableInstance = $macroableInstance;
+        $mixin->macroableClass = $macroableClass;
+
+        return $mixin;
     }
 
     /**

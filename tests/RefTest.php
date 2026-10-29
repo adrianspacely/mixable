@@ -7,6 +7,8 @@ use AdrianBrown\Mixable\Mixin;
 use AdrianBrown\Mixable\Ref;
 use AdrianBrown\Mixable\Tests\Support\Counter;
 
+use function AdrianBrown\Mixable\ref;
+
 beforeEach(function () {
     (new class () {
         use Mixin;

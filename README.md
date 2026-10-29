@@ -1,13 +1,10 @@
 ⚠️ **This is still in development.** ⚠️
 
-- [ ] Blog post.
 - [ ] Finish that meme.
 
 # Mixable
 
 Nicer mixins for `Macroable` classes in Laravel.
-
-*[ TODO: Link to blog post explaining the `Macroable` trait, how it does mixins, and what this package does differently. ]*
 
 ![Macroable Mixins vs. Mixable Mixins](art/meme.jpeg)
 
@@ -20,6 +17,49 @@ composer require adrianb93/mixable
 ```
 
 It needs PHP 8.2 or later, and Laravel 11, 12, or 13.
+
+## Quick Start
+
+Write a mixin as a plain class with public methods. Inside it, `$this` acts like the object you mix into:
+
+```php
+namespace App\Mixins;
+
+use AdrianBrown\Mixable\Mixin;
+
+class CollectionMixin
+{
+    use Mixin;
+
+    public function toSentence(): string
+    {
+        $items = $this->values()->all();
+        $last = array_pop($items);
+
+        return $items ? implode(', ', $items) . " and {$last}" : (string) $last;
+    }
+}
+```
+
+Register it in your `AppServiceProvider`:
+
+```php
+\App\Mixins\CollectionMixin::mix(\Illuminate\Support\Collection::class);
+```
+
+Then call it like any other method:
+
+```php
+collect(['tea', 'coffee', 'cake'])->toSentence(); // "tea, coffee and cake"
+```
+
+That's the core of it. The rest of this README covers:
+
+- [Mixables](#mixables), for subclasses like dedicated collections and query builders.
+- [Mixing into any object](#mixing-into-any-object), for classes that aren't `Macroable`.
+- [Passing arguments by reference](#passing-arguments-by-reference) to a macro.
+- [Static analysis](#static-analysis) with PHPStan.
+- [Troubleshooting](#troubleshooting).
 
 ## Usage
 
@@ -257,6 +297,8 @@ class LoggerMixin
 Macros need the `Macroable` trait, but plenty of classes don't have it, like `Illuminate\Bus\PendingBatch`. You can still mix into them. Register the Mixin (or Mixable) the same way, and call its methods through `mixed()`:
 
 ```php
+use function AdrianBrown\Mixable\mixed;
+
 LoggerMixin::mix(PendingBatch::class);
 
 mixed(Bus::batch($jobs))
@@ -291,6 +333,8 @@ class PointsMixin
         $value = $value + $this->points;
     }
 }
+
+use function AdrianBrown\Mixable\ref;
 
 $value = 10;
 

@@ -8,6 +8,8 @@ use AdrianBrown\Mixable\Mixture;
 use AdrianBrown\Mixable\Tests\Support\SavingsWallet;
 use AdrianBrown\Mixable\Tests\Support\Wallet;
 
+use function AdrianBrown\Mixable\mixed;
+use function AdrianBrown\Mixable\ref;
 use function PHPStan\dumpType;
 
 $wallet = new Wallet();
