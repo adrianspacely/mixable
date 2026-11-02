@@ -13,6 +13,8 @@ use BadMethodCallException;
 use Error;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Facade;
+use Illuminate\Support\Facades\Request as RequestFacade;
 use InvalidArgumentException;
 use LogicException;
 use RuntimeException;
@@ -1158,7 +1160,7 @@ it('only calls a mixin macro on instances of the class it was mixed into', funct
     expect((new SpecialCounter())->label())->toBe('special');
     expect(fn () => (new Counter())->label())->toThrow(
         BadMethodCallException::class,
-        'Method ' . Counter::class . '::label does not exist.'
+        'Method ' . Counter::class . '::label() is a macro mixed into ' . SpecialCounter::class . ', so it can\'t be called on ' . Counter::class . ', which is not a subclass of it.'
     );
 });
 
@@ -1176,7 +1178,7 @@ it('only calls a static mixin macro on the class it was mixed into, or a subclas
     expect(SpecialCounter::label())->toBe('special');
     expect(fn () => Counter::label())->toThrow(
         BadMethodCallException::class,
-        'Method ' . Counter::class . '::label does not exist.'
+        'Method ' . Counter::class . '::label() is a macro mixed into ' . SpecialCounter::class . ', so it can\'t be called on ' . Counter::class . ', which is not a subclass of it.'
     );
 });
 
@@ -1243,4 +1245,49 @@ it('calls private methods declared on a parent of the class it was mixed into', 
     })->mix(get_class($child));
 
     expect($child->mixinCallPrivateMethod())->toBe('private_call_returning_value');
+});
+
+it('mixes into the root of a facade', function () {
+    (new class () {
+        use Mixin;
+
+        public string $macroable = RequestFacade::class;
+
+        public function shoutPath(): string
+        {
+            return strtoupper($this->path());
+        }
+    })->mix();
+    app()->instance('request', Request::create('/hello'));
+    RequestFacade::clearResolvedInstance('request');
+    $subclass = new class () extends Request {
+    };
+
+    expect(Mixer::mixins())->toHaveKey(Request::class);
+    expect(Mixer::mixins())->not->toHaveKey(RequestFacade::class);
+    expect(request()->shoutPath())->toBe('HELLO');
+    expect(RequestFacade::shoutPath())->toBe('HELLO');
+    expect($subclass::create('/sub')->shoutPath())->toBe('SUB');
+});
+
+it('throws when mixing into a facade without a root', function () {
+    $facade = new class () extends Facade {
+        protected static function getFacadeAccessor()
+        {
+            return 'mixable.missing';
+        }
+    };
+    $mixin = new class () {
+        use Mixin;
+
+        public function shout(): string
+        {
+            return 'shout';
+        }
+    };
+
+    expect(fn () => $mixin->mix(get_class($facade)))->toThrow(
+        InvalidArgumentException::class,
+        'Cannot mixin [' . get_class($mixin) . '] into the facade [' . get_class($facade) . '] because it has no root.'
+    );
 });

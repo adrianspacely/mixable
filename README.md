@@ -143,7 +143,8 @@ The package will throw an exception if the Mixin is a subclass of the Macroable.
     ```
 
 - `mix()` throws an `InvalidArgumentException` if a Mixin method has the same name as a method of the Macroable, whatever its visibility. PHP only calls a macro when the class has no method it can reach, so a public method would always win, and a protected or private one would win inside the class but not outside it. This applies to classes mixed through `mixed()` too.
-- A Mixin macro only works on the class you mixed it into, and its subclasses. Laravel shares macros with parent classes that use the same `Macroable` trait, so a Mixin mixed into `SpecialCounter` would otherwise also work on a plain `Counter`. Calling it there throws a `BadMethodCallException`, just like a macro that doesn't exist.
+- A Mixin macro only works on the class you mixed it into, and its subclasses. Laravel shares macros with parent classes that use the same `Macroable` trait, so a Mixin mixed into `SpecialCounter` would otherwise also work on a plain `Counter`. Calling it there throws a `BadMethodCallException` that names the class the macro was mixed into.
+- You can mix a Mixin into a facade, like `Illuminate\Support\Facades\Request`. It is mixed into the facade's root class (`Illuminate\Http\Request`), so the macro works on the root, its subclasses, and statically through the facade. `mix()` throws an `InvalidArgumentException` if the facade has no root yet, so call it after the app has registered the facade's service, like in a service provider's `boot()` method.
 - When you call a "Mixin macro" statically, there is no Macroable instance to decorate. `static::` calls are forwarded to the Macroable class, and `$this->inScope($callback)` runs in the Macroable class scope. Getting or setting attributes throws a `LogicException`.
 
 ### Mixables
@@ -189,7 +190,7 @@ If the subclass (Mixable) method throws, its state is still copied to the parent
 
 `mix()` throws an `InvalidArgumentException` if a Mixable method overrides a method of the parent (Macroable), whatever its visibility. The parent's own method would be called instead of the macro, so give the Mixable method a new name.
 
-A Mixable macro only works on the parent (Macroable) and its subclasses, not on classes above it. For example, a Mixable that extends `Illuminate\Database\Eloquent\Collection` works on Eloquent collections, but calling it on a plain `collect()` collection throws a `BadMethodCallException`.
+A Mixable macro only works on the parent (Macroable) and its subclasses, not on classes above it. For example, a Mixable that extends `Illuminate\Database\Eloquent\Collection` works on Eloquent collections, but calling it on a plain `collect()` collection throws a `BadMethodCallException` that says why.
 
 When you call a "Mixable macro" statically, there is no parent (Macroable) instance. The subclass (Mixable) is still instantiated without a constructor, but no state is copied in or out, and `$this` is returned as the subclass (Mixable).
 

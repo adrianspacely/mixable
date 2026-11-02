@@ -59,6 +59,7 @@ LoggerMixin::mix(\Illuminate\Http\Request::class); // Registers on Request as we
 - `mix()` throws if the Mixin is a subclass of the class it mixes into. Use a Mixable for that.
 - `mix()` throws if a Mixin method has the same name as a method of the class it mixes into, of any visibility. Give the Mixin method a new name.
 - A Mixin macro only works on the class it was mixed into, and its subclasses, even though Laravel shares macros with parent classes.
+- A Mixin can be mixed into a facade, like `Illuminate\Support\Facades\Request`. It is mixed into the facade's root class, so call `mix()` in a service provider's `boot()` method, once the root can be resolved.
 - A Mixin macro can be called statically. Then `static::` calls go to the macroable class, and reading or writing a property throws a `LogicException`.
 
 ## Mixables
@@ -96,7 +97,7 @@ When a Mixable method is called as a macro on a parent instance:
 - Put constructor-style setup in `bootMixable()`, or override `fromMacroable($parent)` (in) and `toMacroable()` (out) to build the instances yourself.
 - Called directly on a subclass instance, a Mixable method is an ordinary method. Nothing is copied.
 - `mix()` throws if a Mixable method overrides a method of the parent. Give it a new name.
-- A Mixable macro only works on instances of its parent class, and their subclasses. A Mixable on `Eloquent\Collection` throws `BadMethodCallException` on a plain `collect()` collection. Models return a plain `Eloquent\Collection` unless they override `newCollection()`.
+- A Mixable macro only works on instances of its parent class, and their subclasses. A Mixable on `Eloquent\Collection` throws a `BadMethodCallException` on a plain `collect()` collection, saying which class the macro was mixed into. Models return a plain `Eloquent\Collection` unless they override `newCollection()`.
 - `$this->inScope(fn () => ...)` runs the callback on the parent, syncing state in and out.
 
 ## Classes that aren't Macroable

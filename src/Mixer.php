@@ -4,10 +4,12 @@ namespace AdrianSpacely\Mixable;
 
 use BadMethodCallException;
 use Closure;
+use Illuminate\Support\Facades\Facade;
 use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionProperty;
+use Throwable;
 
 class Mixer
 {
@@ -32,6 +34,7 @@ class Mixer
     public static function mixin(string $mixin, string $macroable, ?Closure $createMixinInstance = null): void
     {
         $createMixinInstance ??= fn () => resolve($mixin);
+        $macroable = static::resolveFacade($mixin, $macroable);
 
         $class = new ReflectionClass($mixin);
         $methods = collect($class->getMethods())
@@ -63,16 +66,44 @@ class Mixer
 
                 // Laravel shares macros with every class that uses the same Macroable trait, so they reach parent classes too.
                 if (! is_a($macroableInstance ?? static::class, $macroable, true)) {
-                    throw new BadMethodCallException(sprintf(
-                        'Method %s::%s does not exist.',
-                        $macroableInstance === null ? static::class : get_class($macroableInstance),
-                        $method
-                    ));
+                    $class = $macroableInstance === null ? static::class : get_class($macroableInstance);
+
+                    throw new BadMethodCallException(
+                        "Method {$class}::{$method}() is a macro mixed into {$macroable}, so it can't be called on {$class}, which is not a subclass of it."
+                    );
                 }
 
                 return Mixer::callMixin($createMixinInstance, $macroableInstance, $macroable, $method, $args);
             });
         }
+    }
+
+    /**
+     * A facade forwards `macro()` to its root, so mix into the root's class, which is what macros are called on.
+     *
+     * @throws InvalidArgumentException
+     */
+    protected static function resolveFacade(string $mixin, string $macroable): string
+    {
+        if (! is_subclass_of($macroable, Facade::class)) {
+            return $macroable;
+        }
+
+        try {
+            $root = $macroable::getFacadeRoot();
+        } catch (Throwable $e) {
+            $root = null;
+        }
+
+        if (! is_object($root)) {
+            throw new InvalidArgumentException(
+                "Cannot mixin [{$mixin}] into the facade [{$macroable}] because it has no root. Mix it in after the app has registered the facade's service, or into the root's class instead.",
+                0,
+                $e ?? null
+            );
+        }
+
+        return get_class($root);
     }
 
     /**

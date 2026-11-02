@@ -344,6 +344,6 @@ it('does not call a mixable macro on classes above the parent it mixes into', fu
     expect(EloquentCollection::make([1, 2, 3])->firstTwo()->all())->toBe([1, 2]);
     expect(fn () => Collection::make([1, 2, 3])->firstTwo())->toThrow(
         BadMethodCallException::class,
-        'Method ' . Collection::class . '::firstTwo does not exist.'
+        'Method ' . Collection::class . '::firstTwo() is a macro mixed into ' . EloquentCollection::class . ', so it can\'t be called on ' . Collection::class . ', which is not a subclass of it.'
     );
 });

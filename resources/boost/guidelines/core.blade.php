@@ -5,6 +5,7 @@
 - Use a **Mixin** (`AdrianSpacely\Mixable\Mixin`) on a plain class to add its public methods to the classes it names. Inside it, `$this` acts like the target object, including its protected and private members.
 - Use a **Mixable** (`AdrianSpacely\Mixable\Mixable`) on a subclass of a `Macroable` class, like a dedicated Eloquent collection or query builder, to add its public methods to the parent class.
 - Register each one once, in a service provider: `CollectionMixin::mix(Collection::class);` for a Mixin, or `UserCollection::mix();` for a Mixable.
+- A macro only works on the class it was mixed into and its subclasses. Mixing into a facade mixes into the facade's root class.
 - A method that returns `$this` returns the object the macro was called on, so chains keep working.
 - For a class that isn't `Macroable`, register the Mixin the same way and call it through `mixed($object)`. Call `->mixedTarget()` before passing the result to code that type-hints the original class.
 - Macros receive arguments by value. For a by-reference parameter, wrap the argument with `ref($value)`.
