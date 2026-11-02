@@ -55,8 +55,8 @@ class Mixer
             static::$mixins[$macroable][$method] = $mixin;
             static::$factories[$macroable][$method] = $createMixinInstance;
 
-            // A class without macros can still be mixed through `mixed()`.
-            if (! method_exists($macroable, 'macro')) {
+            // A class without macros can still be mixed through `mixed()`. Some, like the Eloquent builder, take them through `__callStatic()`.
+            if (! is_callable([$macroable, 'macro'])) {
                 continue;
             }
 

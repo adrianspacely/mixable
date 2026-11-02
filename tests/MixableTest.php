@@ -4,12 +4,16 @@ namespace AdrianSpacely\Mixable\Tests;
 
 use AdrianSpacely\Mixable\Mixable;
 use AdrianSpacely\Mixable\Mixer;
+use AdrianSpacely\Mixable\Tests\Support\CallStaticMacroable;
+use AdrianSpacely\Mixable\Tests\Support\CallStaticMacroableMixable;
 use AdrianSpacely\Mixable\Tests\Support\CollectionMixable;
 use AdrianSpacely\Mixable\Tests\Support\Counter;
 use AdrianSpacely\Mixable\Tests\Support\CounterMixable;
 use AdrianSpacely\Mixable\Tests\Support\Ticket;
 use BadMethodCallException;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use ReflectionClass;
@@ -346,4 +350,38 @@ it('does not call a mixable macro on classes above the parent it mixes into', fu
         BadMethodCallException::class,
         'Method ' . Collection::class . '::firstTwo() is a macro mixed into ' . EloquentCollection::class . ', so it can\'t be called on ' . Collection::class . ', which is not a subclass of it.'
     );
+});
+
+it('mixes into a parent that takes macros through `__callStatic()`', function () {
+    CallStaticMacroableMixable::mix();
+    $parent = new CallStaticMacroable();
+
+    expect($parent->tag('first'))->toBe($parent);
+    expect($parent->tag('second')->tagCount())->toBe(2);
+    expect($parent->tags)->toBe(['first', 'second']);
+});
+
+it('mixes into the Eloquent query builder', function () {
+    $model = new class () extends Model {
+        protected $table = 'users';
+    };
+    $mixable = new class ($model->newQuery()->getQuery()) extends EloquentBuilder {
+        use Mixable;
+
+        public function whereActive(): static
+        {
+            return $this->where('active', true);
+        }
+
+        public function wheresCount(): int
+        {
+            return count($this->getQuery()->wheres);
+        }
+    };
+    $mixable::mix();
+    $builder = $model->newQuery();
+
+    expect($builder->whereActive())->toBe($builder);
+    expect($builder->wheresCount())->toBe(1);
+    expect($builder->toSql())->toContain('"active" = ?');
 });

@@ -12,6 +12,7 @@ use AdrianSpacely\Mixable\Tests\Support\Wallet;
 use AdrianSpacely\Mixable\Tests\Support\WalletMixable;
 use AdrianSpacely\Mixable\Tests\Support\WalletMixin;
 use BadMethodCallException;
+use Error;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 
@@ -160,4 +161,13 @@ it('throws when a mixin method has the same name as a method of an interface', f
     };
 
     expect(fn () => $mixin->mix(HasBalance::class))->toThrow(InvalidArgumentException::class);
+});
+
+it('skips registering macros on a class that cannot take them, but still mixes it through `mixed()`', function () {
+    WalletMixin::mix();
+
+    expect(is_callable([Wallet::class, 'macro']))->toBe(false);
+    expect(Mixer::mixins())->toHaveKey(Wallet::class);
+    expect(mixed(new Wallet(100))->withdraw(30)->label())->toBe('Grace: 70');
+    expect(fn () => (new Wallet(100))->withdraw(30))->toThrow(Error::class);
 });

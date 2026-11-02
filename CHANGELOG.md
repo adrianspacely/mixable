@@ -25,6 +25,7 @@ All notable changes to `mixable` will be documented in this file.
 - A Laravel Boost guideline and `mixable-development` skill help AI agents use the package.
 - A PHPStan extension describes macros and `mixed()` objects with the types of the methods they call, and reports by-reference arguments passed without `ref()`.
 - Mixins can reach private members declared on any class of the object they're called on: the class they were mixed into, its parents, and its subclasses. Reading a parent's private attribute used to give `null`.
+- `mix()` registers macros on classes that take them through `__callStatic()`, like `Illuminate\Database\Eloquent\Builder`, as well as classes with a `macro()` method. Classes that can't take macros are still only mixed through `mixed()`.
 - `mix()` no longer registers the package's own trait methods, like `__get()` and `bootMixable()`, as macros.
 
 ## 1.0.0 - 202X-XX-XX
