@@ -1143,3 +1143,39 @@ it('keeps changes made to the macroable before the mixin method throws', functio
     expect(fn () => $counter->bumpThenFail())->toThrow(RuntimeException::class, 'Failed after bumping.');
     expect($counter->counts())->toBe([6, 6, 6, 1]);
 });
+
+it('only calls a mixin macro on instances of the class it was mixed into', function () {
+    $mixin = new class () {
+        use Mixin;
+
+        public function label(): string
+        {
+            return 'special';
+        }
+    };
+    $mixin->mix(SpecialCounter::class);
+
+    expect((new SpecialCounter())->label())->toBe('special');
+    expect(fn () => (new Counter())->label())->toThrow(
+        BadMethodCallException::class,
+        'Method ' . Counter::class . '::label does not exist.'
+    );
+});
+
+it('only calls a static mixin macro on the class it was mixed into, or a subclass', function () {
+    $mixin = new class () {
+        use Mixin;
+
+        public function label(): string
+        {
+            return 'special';
+        }
+    };
+    $mixin->mix(SpecialCounter::class);
+
+    expect(SpecialCounter::label())->toBe('special');
+    expect(fn () => Counter::label())->toThrow(
+        BadMethodCallException::class,
+        'Method ' . Counter::class . '::label does not exist.'
+    );
+});

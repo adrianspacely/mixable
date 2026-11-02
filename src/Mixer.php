@@ -58,6 +58,15 @@ class Mixer
                 /** @var object|null $macroableInstance */
                 $macroableInstance = isset($this) ? $this : null; // @phpstan-ignore-line
 
+                // Laravel shares macros with every class that uses the same Macroable trait, so they reach parent classes too.
+                if (! is_a($macroableInstance ?? static::class, $macroable, true)) {
+                    throw new BadMethodCallException(sprintf(
+                        'Method %s::%s does not exist.',
+                        $macroableInstance === null ? static::class : get_class($macroableInstance),
+                        $method
+                    ));
+                }
+
                 return Mixer::callMixin($createMixinInstance, $macroableInstance, $macroable, $method, $args);
             });
         }

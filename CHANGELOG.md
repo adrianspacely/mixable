@@ -9,6 +9,7 @@ All notable changes to `mixable` will be documented in this file.
 - Requires Laravel 12 or 13, on PHP 8.2 or later. Laravel 11 and older aren't supported, because every Laravel 11 release has security advisories that won't be fixed, and Composer refuses to install them.
 - `newMixableInstance()` is now `fromMacroable()`, and `newMacroableInstance()` is now `toMacroable()`, on both the `Mixin` and `Mixable` traits. They are the "in" and "out" steps of every macro call. If you override them, rename your overrides, because methods with the old names are no longer called.
 - `mix()` throws an `InvalidArgumentException` when a Mixin or Mixable method has the same name as a method of the class it mixes into, including protected and private methods and methods a Mixable overrides. Those macros were silently never called, or only called from outside the class.
+- Mixin and Mixable macros throw a `BadMethodCallException` when they're called on a class above the one they were mixed into. Laravel shares macros with every class that uses the same `Macroable` trait, so a Mixable on `Eloquent\Collection` used to work on every `collect()` collection too.
 
 ### Changes
 

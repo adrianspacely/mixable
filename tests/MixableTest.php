@@ -8,6 +8,8 @@ use AdrianSpacely\Mixable\Tests\Support\CollectionMixable;
 use AdrianSpacely\Mixable\Tests\Support\Counter;
 use AdrianSpacely\Mixable\Tests\Support\CounterMixable;
 use AdrianSpacely\Mixable\Tests\Support\Ticket;
+use BadMethodCallException;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use ReflectionClass;
@@ -326,4 +328,22 @@ it('keeps changes made in `inScope()` when the callback throws', function () {
 
     expect(fn () => $counter->bumpInScopeThenFail())->toThrow(RuntimeException::class, 'Failed in scope.');
     expect($counter->counts())->toBe([7, 7, 7, 2]);
+});
+
+it('does not call a mixable macro on classes above the parent it mixes into', function () {
+    $mixable = new class () extends EloquentCollection {
+        use Mixable;
+
+        public function firstTwo(): static
+        {
+            return $this->take(2);
+        }
+    };
+    $mixable::mix();
+
+    expect(EloquentCollection::make([1, 2, 3])->firstTwo()->all())->toBe([1, 2]);
+    expect(fn () => Collection::make([1, 2, 3])->firstTwo())->toThrow(
+        BadMethodCallException::class,
+        'Method ' . Collection::class . '::firstTwo does not exist.'
+    );
 });
