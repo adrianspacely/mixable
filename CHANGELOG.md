@@ -6,12 +6,12 @@ All notable changes to `mixable` will be documented in this file.
 
 ### Breaking changes
 
+- Requires Laravel 12 or 13, on PHP 8.2 or later. Laravel 11 and older aren't supported, because every Laravel 11 release has security advisories that won't be fixed, and Composer refuses to install them.
 - `newMixableInstance()` is now `fromMacroable()`, and `newMacroableInstance()` is now `toMacroable()`, on both the `Mixin` and `Mixable` traits. They are the "in" and "out" steps of every macro call. If you override them, rename your overrides, because methods with the old names are no longer called.
 
 ### Changes
 
 - The package is now `adrianspacely/mixable`, with the `AdrianSpacely\Mixable` namespace.
-- Supports Laravel 11, 12, and 13 on PHP 8.2 or later.
 - A Mixable macro creates the subclass without its constructor, copies the parent's state in, and copies it back out, returning the parent when the method returns `$this`.
 - Mixin and Mixable macros can be called statically.
 - `mixed($object)` mixes into any object, including classes that aren't `Macroable`.

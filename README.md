@@ -10,7 +10,7 @@ You can install this package via composer:
 composer require adrianspacely/mixable
 ```
 
-It needs PHP 8.2 or later, and Laravel 11, 12, or 13.
+It needs PHP 8.2 or later, and Laravel 12 or 13.
 
 ## Quick Start
 
