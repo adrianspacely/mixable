@@ -26,6 +26,9 @@ class Mixer
     /** @var array<string, list<ReflectionProperty>> */
     protected static array $stateProperties = [];
 
+    /** @var array<string, class-string|null> */
+    protected static array $memberScopes = [];
+
     public static function mixin(string $mixin, string $macroable, ?Closure $createMixinInstance = null): void
     {
         $createMixinInstance ??= fn () => resolve($mixin);
@@ -143,6 +146,49 @@ class Mixer
 
         /** @var T */
         return static::$reflectionClasses[$class]->newInstanceWithoutConstructor();
+    }
+
+    /**
+     * The class scope that can reach a property or method of the object.
+     *
+     * A private member is only visible in the scope of the class that declares it, so this returns that class.
+     * Otherwise, it returns the given scope.
+     *
+     * @param 'property'|'method' $kind
+     * @param class-string|null $scope The scope to use, unless a private member needs another.
+     * @return class-string|null
+     */
+    public static function memberScope(object $target, ?string $scope, string $kind, string $name): ?string
+    {
+        $class = get_class($target);
+        $key = "{$class}|{$scope}|{$kind}|{$name}";
+
+        if (array_key_exists($key, static::$memberScopes)) {
+            return static::$memberScopes[$key];
+        }
+
+        // Look up from the scope first, so a private member it can already see wins over one with the same name elsewhere.
+        $classes = array_unique(array_merge(
+            $scope === null ? [] : [$scope, ...array_values(class_parents($scope))],
+            [$class, ...array_values(class_parents($class))],
+        ));
+
+        foreach ($classes as $declaringClass) {
+            static::$reflectionClasses[$declaringClass] ??= new ReflectionClass($declaringClass);
+            $reflection = static::$reflectionClasses[$declaringClass];
+
+            $member = match (true) {
+                $kind === 'property' && $reflection->hasProperty($name) => $reflection->getProperty($name),
+                $kind === 'method' && $reflection->hasMethod($name) => $reflection->getMethod($name),
+                default => null,
+            };
+
+            if ($member !== null && $member->getDeclaringClass()->getName() === $declaringClass) {
+                return static::$memberScopes[$key] = $member->isPrivate() ? $declaringClass : $scope;
+            }
+        }
+
+        return static::$memberScopes[$key] = $scope;
     }
 
     /**

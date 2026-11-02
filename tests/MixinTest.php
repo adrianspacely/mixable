@@ -1179,3 +1179,68 @@ it('only calls a static mixin macro on the class it was mixed into, or a subclas
         'Method ' . Counter::class . '::label does not exist.'
     );
 });
+
+it('reaches private attributes declared on a parent of the class it was mixed into', function () {
+    (new class () {
+        use Mixin;
+
+        public string $macroable = SpecialCounter::class;
+
+        public function mixinGetPrivateCount()
+        {
+            return $this->privateCount;
+        }
+
+        public function mixinSetPrivateCount($value)
+        {
+            $this->privateCount = $value;
+        }
+
+        public function mixinGetPrivateBaseCount()
+        {
+            return $this->privateBaseCount;
+        }
+    })->mix();
+    $counter = new SpecialCounter(5);
+
+    expect($counter->mixinGetPrivateCount())->toBe(5);
+    expect($counter->mixinGetPrivateBaseCount())->toBe(0);
+
+    $counter->mixinSetPrivateCount(9);
+
+    expect($counter->counts())->toBe([5, 5, 9, 0]);
+    expect(array_key_exists('privateCount', (array) $counter))->toBe(false); // No dynamic property was created.
+});
+
+it('reaches private attributes declared on a subclass of the class it was mixed into', function () {
+    $child = new class () extends Counter {
+        private $childSecret = 'child_secret';
+    };
+    (new class () {
+        use Mixin;
+
+        public string $macroable = Counter::class;
+
+        public function mixinGetChildSecret()
+        {
+            return $this->childSecret;
+        }
+    })->mix();
+
+    expect($child->mixinGetChildSecret())->toBe('child_secret');
+});
+
+it('calls private methods declared on a parent of the class it was mixed into', function () {
+    $child = new class () extends TestMe {
+    };
+    (new class () {
+        use Mixin;
+
+        public function mixinCallPrivateMethod()
+        {
+            return $this->privateCallReturningValue();
+        }
+    })->mix(get_class($child));
+
+    expect($child->mixinCallPrivateMethod())->toBe('private_call_returning_value');
+});

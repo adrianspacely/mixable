@@ -101,9 +101,28 @@ trait Mixin
      * @param  mixed  $object
      * @return class-string|null
      */
-    protected function forwardedCallScope($object)
+    protected function forwardedCallScope($object, ?string $method = null)
     {
-        return $object === $this->macroableInstance ? $this->macroableScope() : null;
+        if ($object !== $this->macroableInstance) {
+            return null;
+        }
+
+        return $method === null
+            ? $this->macroableScope()
+            : Mixer::memberScope($object, $this->macroableScope(), 'method', $method);
+    }
+
+    /**
+     * The class scope that can reach the attribute on the decorated object, including a private attribute declared on any of its classes.
+     *
+     * @return class-string|null
+     */
+    protected function attributeScope(string $attribute): ?string
+    {
+        /** @var object $macroableInstance */
+        $macroableInstance = $this->macroableInstance;
+
+        return Mixer::memberScope($macroableInstance, $this->macroableScope(), 'property', $attribute);
     }
 
     public function __get(string $attribute): mixed
@@ -114,14 +133,14 @@ trait Mixin
 
         $this->ensureMacroableInstance('get', $attribute);
 
-        return $this->inScope(fn () => $this->{$attribute});
+        return Mixer::invade($this->macroableInstance, fn () => $this->{$attribute}, $this->attributeScope($attribute));
     }
 
     public function __set(string $attribute, mixed $value): void
     {
         $this->ensureMacroableInstance('set', $attribute);
 
-        $this->inScope(fn () => $this->{$attribute} = $value);
+        Mixer::invade($this->macroableInstance, fn () => $this->{$attribute} = $value, $this->attributeScope($attribute));
     }
 
     /**

@@ -25,7 +25,7 @@ Use this skill when you:
 
 ## Mixins
 
-A Mixin is a plain class with the `Mixin` trait. Its public, non-static methods become macros. Inside them, `$this` is a decorator: property reads and writes and method calls go to the object the macro was called on, including protected and private members.
+A Mixin is a plain class with the `Mixin` trait. Its public, non-static methods become macros. Inside them, `$this` is a decorator: property reads and writes and method calls go to the object the macro was called on, including protected and private members declared on any of its classes.
 
 ```php
 namespace App\Mixins;

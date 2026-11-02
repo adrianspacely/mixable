@@ -118,7 +118,7 @@ The package will throw an exception if the Mixin is a subclass of the Macroable.
 
 **Quick Mixin Facts:**
 
-- The `Mixin` trait is a decorator for the Macroable. You can call its methods and get and set its attributes, whether they are public, protected, or private.
+- The `Mixin` trait is a decorator for the Macroable. You can call its methods and get and set its attributes, whether they are public, protected, or private, including private ones declared on a parent class or a subclass.
 - When returning `$this` (Mixin), the registered macro switches the return value to the Macroable.
 - For the most part, a decorator feels like the Macroable, but it isn’t in its scope. If you need to be in the Macroable’s scope, you can use `$this->inScope($callback)`. Example:
 
