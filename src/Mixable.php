@@ -24,7 +24,7 @@ trait Mixable
             );
         }
 
-        Mixer::mixin($mixin, $macroable, fn ($parent) => $mixin::newMixableInstance($parent));
+        Mixer::mixin($mixin, $macroable, fn ($parent) => $mixin::fromMacroable($parent));
     }
 
     /**
@@ -46,10 +46,12 @@ trait Mixable
     }
 
     /**
+     * In: create the mixable for the parent a macro was called on, without its constructor, and copy the parent's state into it.
+     *
      * @param object|null $parent
      * @return static
      */
-    protected static function newMixableInstance($parent)
+    protected static function fromMacroable($parent)
     {
         $mixable = Mixer::newInstanceWithoutConstructor(static::class);
         $mixable->macroableInstance = $parent;
@@ -60,9 +62,11 @@ trait Mixable
     }
 
     /**
+     * Out: copy the mixable's state back to the parent, and return the parent for the macro to return when the method returned `$this`.
+     *
      * @return object
      */
-    public function newMacroableInstance()
+    public function toMacroable()
     {
         $this->pushMacroableState();
 

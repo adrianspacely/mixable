@@ -12,12 +12,12 @@ class CollectionMixable extends BaseCollection
     use Mixable;
     use TransposeCollectionMethod;
 
-    protected static function newMixableInstance(BaseCollection $parent): self
+    protected static function fromMacroable(BaseCollection $parent): self
     {
         return self::make($parent->all());
     }
 
-    public function newMacroableInstance(): BaseCollection
+    public function toMacroable(): BaseCollection
     {
         return BaseCollection::make($this->items);
     }

@@ -421,10 +421,10 @@ A Mixable, when called from a macro/Macroable, instantiates the subclass/Mixable
 If you had logic in your constructor that is not getting triggered, then here are some solutions:
 
 1. You could add a `bootMixable()` method to trigger the same setup code you do in your constructor.
-2. Override the “in” and “out” methods `Mixable` implements and do it your way. The following example is how to make an eloquent query builder instance using another eloquent query builder instance.
+2. Override the “in” and “out” methods `Mixable` implements, `fromMacroable()` and `toMacroable()`, and do it your way. The following example is how to make an eloquent query builder instance using another eloquent query builder instance.
 
     ```php
-    protected static function newMixableInstance($parent): self
+    protected static function fromMacroable($parent): self
     {
         // IN: Create an instance of the mixable subclass which has the methods
         //     we mixed into the parent class.
@@ -433,7 +433,7 @@ If you had logic in your constructor that is not getting triggered, then here ar
             ->mergeConstraintsFrom($parent);
     }
 
-    public function newMacroableInstance(): BaseBuilder
+    public function toMacroable(): BaseBuilder
     {
         // OUT: Return the macroable instance which the macro was called from.
         //      You could also return `$this` if you're fine with switching

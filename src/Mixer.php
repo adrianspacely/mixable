@@ -75,7 +75,7 @@ class Mixer
             return $result;
         }
 
-        $macroable = $mixin->newMacroableInstance();
+        $macroable = $mixin->toMacroable();
 
         return $result === $mixin ? $macroable : $result;
     }

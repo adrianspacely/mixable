@@ -67,7 +67,7 @@ it("creates the subclass instance using the macroable parent class instance's st
     ($mixable = new class () extends Collection {
         use Mixable;
 
-        protected static function newMixableInstance($parent): self
+        protected static function fromMacroable($parent): self
         {
             // The parent comes in.
             test()->expect($parent)->toBeInstanceOf(Collection::class);
@@ -77,7 +77,7 @@ it("creates the subclass instance using the macroable parent class instance's st
             return self::make([1, 2, 3]);
         }
 
-        public function newMacroableInstance(): Collection
+        public function toMacroable(): Collection
         {
             // New parent instance out from mixable values.
             return Collection::make($this->items);

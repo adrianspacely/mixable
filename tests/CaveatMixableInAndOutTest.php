@@ -7,7 +7,7 @@ use AdrianSpacely\Mixable\Tests\Support\Counter;
 use AdrianSpacely\Mixable\Tests\Support\CounterMixable;
 
 test('problem: mixable is created without the constructor', function () {
-    // If this is a problem, the the solution is do your own "in" and "out" method.
+    // If this is a problem, the solution is to write your own "in" and "out" methods, `fromMacroable()` and `toMacroable()`.
     CounterMixable::mix();
 
     expect((new Counter())->wasConstructed())->toBe(true);
@@ -18,7 +18,7 @@ test('solution: you can write your own "in" and "out" methods', function () {
     (new class () extends Counter {
         use Mixable;
 
-        protected static function newMixableInstance($parent): self
+        protected static function fromMacroable($parent): self
         {
             // IN: construct the mixable, then copy the parent's state into it.
             return tap(new self(), function ($mixable) use ($parent) {
@@ -27,7 +27,7 @@ test('solution: you can write your own "in" and "out" methods', function () {
             });
         }
 
-        public function newMacroableInstance(): Counter
+        public function toMacroable(): Counter
         {
             // OUT: return a brand new parent instead of updating the original.
             return new Counter($this->publicCount);

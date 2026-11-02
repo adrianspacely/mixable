@@ -43,16 +43,18 @@ trait Mixin
                 );
             }
 
-            Mixer::mixin($mixin, $macroable, fn ($macroable, $macroableClass) => $mixin::newMixableInstance($macroable, $macroableClass));
+            Mixer::mixin($mixin, $macroable, fn ($macroable, $macroableClass) => $mixin::fromMacroable($macroable, $macroableClass));
         }
     }
 
     /**
+     * In: create the mixin that decorates the object a macro was called on.
+     *
      * @param object|null $macroableInstance
      * @param class-string|null $macroableClass
      * @return self
      */
-    public static function newMixableInstance($macroableInstance, ?string $macroableClass = null)
+    public static function fromMacroable($macroableInstance, ?string $macroableClass = null)
     {
         $mixin = new self();
         $mixin->macroableInstance = $macroableInstance;
@@ -62,9 +64,11 @@ trait Mixin
     }
 
     /**
+     * Out: return the decorated object for the macro to return when the method returned `$this`.
+     *
      * @return object|null
      */
-    public function newMacroableInstance()
+    public function toMacroable()
     {
         return $this->macroableInstance;
     }
