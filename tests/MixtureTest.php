@@ -13,6 +13,7 @@ use AdrianSpacely\Mixable\Tests\Support\WalletMixable;
 use AdrianSpacely\Mixable\Tests\Support\WalletMixin;
 use BadMethodCallException;
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 
 use function AdrianSpacely\Mixable\mixed;
 use function AdrianSpacely\Mixable\ref;
@@ -130,4 +131,33 @@ it('does not use mixins registered on another class', function () {
 
     expect(fn () => mixed(collect())->withdraw(1))
         ->toThrow(BadMethodCallException::class);
+});
+
+it('throws when a mixin method has the same name as a method of a class that is not macroable', function () {
+    $mixin = new class () {
+        use Mixin;
+
+        public function getBalance(): int
+        {
+            return 0;
+        }
+    };
+
+    expect(fn () => $mixin->mix(Wallet::class))->toThrow(
+        InvalidArgumentException::class,
+        'Cannot mixin [' . get_class($mixin) . '::getBalance()] because [' . Wallet::class . '] already has a public getBalance() method.'
+    );
+});
+
+it('throws when a mixin method has the same name as a method of an interface', function () {
+    $mixin = new class () {
+        use Mixin;
+
+        public function getBalance(): int
+        {
+            return 0;
+        }
+    };
+
+    expect(fn () => $mixin->mix(HasBalance::class))->toThrow(InvalidArgumentException::class);
 });

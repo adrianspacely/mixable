@@ -4,6 +4,7 @@ namespace AdrianSpacely\Mixable;
 
 use BadMethodCallException;
 use Closure;
+use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionProperty;
@@ -41,6 +42,10 @@ class Mixer
             ->map->getName();
 
         foreach ($methods as $method) {
+            static::ensureMethodDoesNotClash($mixin, $macroable, $method);
+        }
+
+        foreach ($methods as $method) {
             static::$mixins[$macroable][$method] = $mixin;
             static::$factories[$macroable][$method] = $createMixinInstance;
 
@@ -59,6 +64,28 @@ class Mixer
     }
 
     /**
+     * PHP only calls `__call()` for methods that don't exist or can't be reached, so a macro can't share a method's name.
+     *
+     * @throws InvalidArgumentException
+     */
+    protected static function ensureMethodDoesNotClash(string $mixin, string $macroable, string $method): void
+    {
+        if (! method_exists($macroable, $method)) {
+            return;
+        }
+
+        $existing = new ReflectionMethod($macroable, $method);
+        $visibility = $existing->isPublic() ? 'public' : ($existing->isProtected() ? 'protected' : 'private');
+        $reason = $existing->isPublic()
+            ? 'PHP calls the method on the class before its macros, so the macro would never be called.'
+            : "The macro would be called from outside the class, and the class's own method from inside it.";
+
+        throw new InvalidArgumentException(
+            "Cannot mixin [{$mixin}::{$method}()] because [{$macroable}] already has a {$visibility} {$method}() method. {$reason} Rename the mixin method."
+        );
+    }
+
+    /**
      * Call a mixin method for the macroable, the way its macro does.
      *
      * @internal
@@ -69,13 +96,17 @@ class Mixer
     {
         $args = Ref::unwrap($args);
         $mixin = $createMixinInstance($macroableInstance, $macroableClass);
-        $result = $mixin->{$method}(...$args);
 
         if ($macroableInstance === null || ! static::isMixinOrMixable($mixin)) {
-            return $result;
+            return $mixin->{$method}(...$args);
         }
 
-        $macroable = $mixin->toMacroable();
+        // Copy the state back even when the method throws, like a method on the macroable would keep its changes.
+        try {
+            $result = $mixin->{$method}(...$args);
+        } finally {
+            $macroable = $mixin->toMacroable();
+        }
 
         return $result === $mixin ? $macroable : $result;
     }

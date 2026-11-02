@@ -142,6 +142,7 @@ The package will throw an exception if the Mixin is a subclass of the Macroable.
     }
     ```
 
+- `mix()` throws an `InvalidArgumentException` if a Mixin method has the same name as a method of the Macroable, whatever its visibility. PHP only calls a macro when the class has no method it can reach, so a public method would always win, and a protected or private one would win inside the class but not outside it. This applies to classes mixed through `mixed()` too.
 - When you call a "Mixin macro" statically, there is no Macroable instance to decorate. `static::` calls are forwarded to the Macroable class, and `$this->inScope($callback)` runs in the Macroable class scope. Getting or setting attributes throws a `LogicException`.
 
 ### Mixables
@@ -182,6 +183,10 @@ When you call a "Mixable macro":
     1. The state of the subclass (Mixable) is copied to the parent (Macroable).
     2. If the return value is `$this` (Mixable), it is switched to the parent (Macroable).
 5. The registered macro returns the value.
+
+If the subclass (Mixable) method throws, its state is still copied to the parent (Macroable) before the exception is rethrown. Changes made before the exception are kept, just like a method on the parent, so the parent isn't rolled back.
+
+`mix()` throws an `InvalidArgumentException` if a Mixable method overrides a method of the parent (Macroable), whatever its visibility. The parent's own method would be called instead of the macro, so give the Mixable method a new name.
 
 When you call a "Mixable macro" statically, there is no parent (Macroable) instance. The subclass (Mixable) is still instantiated without a constructor, but no state is copied in or out, and `$this` is returned as the subclass (Mixable).
 

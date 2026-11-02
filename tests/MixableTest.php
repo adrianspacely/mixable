@@ -9,7 +9,9 @@ use AdrianSpacely\Mixable\Tests\Support\Counter;
 use AdrianSpacely\Mixable\Tests\Support\CounterMixable;
 use AdrianSpacely\Mixable\Tests\Support\Ticket;
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 use ReflectionClass;
+use RuntimeException;
 
 it('works', function () {
     CollectionMixable::mix();
@@ -268,4 +270,60 @@ test('only copies the state of classes the macroable instance shares with the mi
     expect($result)->toBe($counter);
     expect($counter->counts())->toBe([6, 6, 6, 1]);
     expect(property_exists($counter, 'booted'))->toBe(false);
+});
+
+it('throws when a mixable method overrides a method of the parent it mixes into', function () {
+    $mixable = new class () extends Counter {
+        use Mixable;
+
+        public function counts(): array
+        {
+            return [];
+        }
+    };
+
+    expect(fn () => $mixable::mix())->toThrow(
+        InvalidArgumentException::class,
+        'Cannot mixin [' . get_class($mixable) . '::counts()] because [' . Counter::class . '] already has a public counts() method. PHP calls the method on the class before its macros, so the macro would never be called. Rename the mixin method.'
+    );
+});
+
+it('copies state back to the parent when the mixable method throws', function () {
+    $mixable = new class () extends Counter {
+        use Mixable;
+
+        public function bumpThenFail(): void
+        {
+            $this->bump();
+
+            throw new RuntimeException('Failed after bumping.');
+        }
+    };
+    $mixable::mix();
+    $counter = new Counter(5);
+
+    expect(fn () => $counter->bumpThenFail())->toThrow(RuntimeException::class, 'Failed after bumping.');
+    expect($counter->counts())->toBe([6, 6, 6, 1]);
+});
+
+it('keeps changes made in `inScope()` when the callback throws', function () {
+    $mixable = new class () extends Counter {
+        use Mixable;
+
+        public function bumpInScopeThenFail(): void
+        {
+            $this->bump();
+
+            $this->inScope(function () {
+                $this->bump();
+
+                throw new RuntimeException('Failed in scope.');
+            });
+        }
+    };
+    $mixable::mix();
+    $counter = new Counter(5);
+
+    expect(fn () => $counter->bumpInScopeThenFail())->toThrow(RuntimeException::class, 'Failed in scope.');
+    expect($counter->counts())->toBe([7, 7, 7, 2]);
 });

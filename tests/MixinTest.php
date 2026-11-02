@@ -13,7 +13,9 @@ use BadMethodCallException;
 use Error;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 use LogicException;
+use RuntimeException;
 
 it('works', function () {
     CollectionMixin::mix(Collection::class);
@@ -1065,4 +1067,79 @@ test('a macro called statically cannot get or set attributes on the macroable', 
 
     expect(fn () => TestMe::getAttribute())->toThrow(LogicException::class, 'Cannot get [publicAttribute] on [' . TestMe::class . '] because the macro was called statically.');
     expect(fn () => TestMe::setAttribute())->toThrow(LogicException::class, 'Cannot set [publicAttribute] on [' . TestMe::class . '] because the macro was called statically.');
+});
+
+it('throws when a mixin method has the same name as a public method of the macroable', function () {
+    $mixin = new class () {
+        use Mixin;
+
+        public function bump(): void
+        {
+        }
+    };
+
+    expect(fn () => $mixin->mix(Counter::class))->toThrow(
+        InvalidArgumentException::class,
+        'Cannot mixin [' . get_class($mixin) . '::bump()] because [' . Counter::class . '] already has a public bump() method. PHP calls the method on the class before its macros, so the macro would never be called. Rename the mixin method.'
+    );
+});
+
+it('throws when a mixin method has the same name as a protected or private method of the macroable', function (string $method, string $visibility) {
+    $mixin = new class () {
+        use Mixin;
+
+        public function bumpBase(): void
+        {
+        }
+
+        public function privateCallReturningValue(): void
+        {
+        }
+    };
+
+    $macroable = $method === 'bumpBase' ? Counter::class : TestMe::class;
+
+    expect(fn () => $mixin->mix($macroable))->toThrow(
+        InvalidArgumentException::class,
+        'Cannot mixin [' . get_class($mixin) . "::{$method}()] because [{$macroable}] already has a {$visibility} {$method}() method. The macro would be called from outside the class, and the class's own method from inside it. Rename the mixin method."
+    );
+})->with([
+    'protected' => ['bumpBase', 'protected'],
+    'private' => ['privateCallReturningValue', 'private'],
+]);
+
+it('registers none of the mixin methods when one of them clashes', function () {
+    $mixin = new class () {
+        use Mixin;
+
+        public function unique(): void
+        {
+        }
+
+        public function bump(): void
+        {
+        }
+    };
+
+    expect(fn () => $mixin->mix(Counter::class))->toThrow(InvalidArgumentException::class);
+    expect(Counter::hasMacro('unique'))->toBe(false);
+    expect(Mixer::mixins())->toBe([]);
+});
+
+it('keeps changes made to the macroable before the mixin method throws', function () {
+    $mixin = new class () {
+        use Mixin;
+
+        public function bumpThenFail(): void
+        {
+            $this->bump();
+
+            throw new RuntimeException('Failed after bumping.');
+        }
+    };
+    $mixin->mix(Counter::class);
+    $counter = new Counter(5);
+
+    expect(fn () => $counter->bumpThenFail())->toThrow(RuntimeException::class, 'Failed after bumping.');
+    expect($counter->counts())->toBe([6, 6, 6, 1]);
 });

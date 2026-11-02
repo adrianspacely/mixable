@@ -57,6 +57,7 @@ LoggerMixin::mix(\Illuminate\Http\Request::class); // Registers on Request as we
 - `$this` is not the object itself, and `static::class` is the Mixin. When you need the real object, or its class scope, use `$this->inScope(fn () => ...)`. Inside the callback, `$this` and `static` are the object.
 - Passing a property by reference through `$this` raises "Indirect modification of overloaded property". Copy it to a local variable, or work inside `inScope()`.
 - `mix()` throws if the Mixin is a subclass of the class it mixes into. Use a Mixable for that.
+- `mix()` throws if a Mixin method has the same name as a method of the class it mixes into, of any visibility. Give the Mixin method a new name.
 - A Mixin macro can be called statically. Then `static::` calls go to the macroable class, and reading or writing a property throws a `LogicException`.
 
 ## Mixables
@@ -88,11 +89,12 @@ When a Mixable method is called as a macro on a parent instance:
 1. The subclass is created **without its constructor**, then `bootMixable()` runs.
 2. The parent's properties are copied into it. The copy is shallow, so objects inside properties are shared.
 3. The method runs on the subclass.
-4. The subclass's properties are always copied back to the parent.
+4. The subclass's properties are always copied back to the parent, even when the method throws.
 5. If the method returned `$this`, the macro returns the parent. Anything else, including a new instance, is returned as it is.
 
 - Put constructor-style setup in `bootMixable()`, or override `fromMacroable($parent)` (in) and `toMacroable()` (out) to build the instances yourself.
 - Called directly on a subclass instance, a Mixable method is an ordinary method. Nothing is copied.
+- `mix()` throws if a Mixable method overrides a method of the parent. Give it a new name.
 - `$this->inScope(fn () => ...)` runs the callback on the parent, syncing state in and out.
 
 ## Classes that aren't Macroable
