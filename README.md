@@ -387,6 +387,10 @@ Parameter #1 $value of method App\Models\Player::addPoints() is passed by refere
 
 The error identifier is `mixable.refArgument`.
 
+## AI Agents
+
+If your app uses [Laravel Boost](https://laravel.com/framework/docs/boost), it picks up this package's guideline and `mixable-development` skill when you run `php artisan boost:install` or `boost:update`. Boost only includes them when your app's `composer.json` requires `adrianspacely/mixable` directly.
+
 ## Troubleshooting
 
 ### [Mixable] My Mixable isn’t returning an instance of the parent (Macroable), it is returning an instance of the child/subclass (Mixable).
